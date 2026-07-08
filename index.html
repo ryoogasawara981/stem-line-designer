@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STEM — Line Designer</title>
+<style>
+  :root {
+    --warm: #E0663C; --warm-deep: #B84E28; --warm-soft: #F2A488;
+    --warm-pale: rgba(224,102,60,.12);
+    --cool: #5E8CA7; --cool-deep: #3E6A85; --cool-soft: #A8C4D4;
+    --cool-pale: rgba(94,140,167,.14);
+    --ink: #2A3138; --ink-2: #5A646D; --ink-3: #96A0A8;
+    --glass: rgba(255,255,255,.52);
+    --glass-border: rgba(255,255,255,.65);
+    --line: rgba(62,106,133,.16);
+    --radius: 24px;
+    --font: "Helvetica Neue", "A P-OTF A1Gothic Std", "A1Gothic Std", "A-OTF A1ゴシック Std", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { min-height: 100%; }
+  body {
+    font-family: var(--font);
+    color: var(--ink); line-height: 1.75;
+    min-height: 100vh;
+    background: linear-gradient(165deg, #E6EDF2 0%, #DCE5EC 45%, #E2E4E6 100%);
+    position: relative;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1;
+    background:
+      radial-gradient(640px 520px at 88% 8%, rgba(242,164,136,.5), transparent 65%),
+      radial-gradient(760px 640px at 6% 92%, rgba(94,140,167,.38), transparent 65%),
+      radial-gradient(520px 440px at 18% 22%, rgba(255,255,255,.85), transparent 60%),
+      radial-gradient(460px 420px at 70% 75%, rgba(168,196,212,.3), transparent 60%);
+    filter: blur(2px);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 90px; }
+  header { padding: 34px 0 26px; }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand h1 { font-size: 32px; letter-spacing: .16em; font-weight: 700; }
+  .brand span { font-size: 11.5px; color: var(--ink-3); letter-spacing: .22em; font-weight: 700; }
+  .tagline { font-size: 13px; color: var(--ink-2); margin-top: 6px; letter-spacing: .04em; }
+
+  .main-grid { display: grid; gap: 24px; }
+  .main-grid:not(.two-col) .section { max-width: 720px; margin-left: auto; margin-right: auto; width: 100%; }
+  .main-grid.two-col { grid-template-columns: 0.92fr 1.08fr; align-items: start; }
+  @media (max-width: 980px) { .main-grid.two-col { grid-template-columns: 1fr; } }
+
+  .section { margin-bottom: 12px; }
+  .step-num { font-size: 10.5px; letter-spacing: .24em; color: var(--cool-deep); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+  .section h2 { font-size: 17px; font-weight: 700; margin-bottom: 10px; letter-spacing: .02em; }
+  .note { font-size: 12.5px; color: var(--ink-2); margin-bottom: 16px; }
+
+  .upload-zone {
+    border: 1.2px dashed rgba(94,140,167,.45); border-radius: var(--radius);
+    padding: 30px 18px; text-align: center; cursor: pointer;
+    background: var(--glass);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    transition: all .2s;
+  }
+  .upload-zone:hover { border-color: var(--cool); background: rgba(255,255,255,.68); }
+  .uz-icon { font-size: 26px; }
+  .uz-text { font-size: 14px; font-weight: 700; margin-top: 8px; letter-spacing: .03em; }
+  .uz-sub { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+  .skip-link { text-align: center; margin-top: 12px; font-size: 12px; }
+  .skip-link a { color: var(--ink-3); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius); padding: 22px;
+    box-shadow: 0 24px 70px rgba(62,106,133,.14);
+  }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .18em;
+    padding: 5px 14px; border-radius: 999px;
+  }
+  .badge.orange { background: var(--warm-pale); color: var(--warm-deep); }
+  .regen { font-size: 12px; color: var(--ink-3); cursor: pointer; border: none; background: none; text-decoration: underline; text-underline-offset: 3px; }
+
+  .settings-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .setting { flex: 1; min-width: 120px; }
+  .setting label { font-size: 10.5px; color: var(--ink-3); display: block; margin-bottom: 5px; letter-spacing: .14em; font-weight: 700; }
+  .seg {
+    display: flex; border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;
+    background: rgba(255,255,255,.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .seg button {
+    flex: 1; padding: 9px 4px; border: none; background: transparent;
+    font-size: 12.5px; color: var(--ink-2); cursor: pointer; font-family: var(--font);
+    transition: all .15s;
+  }
+  .seg button.on { background: var(--cool-deep); color: #fff; font-weight: 700; }
+
+  #designSvg { width: 100%; height: auto; display: block; touch-action: none; }
+  .boundary-hit { cursor: grab; }
+  .seg-hit { cursor: pointer; }
+
+  .picker {
+    margin-top: 14px; padding: 16px; border-radius: 18px;
+    background: rgba(255,255,255,.45);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .picker-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .side-pill { font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 999px; letter-spacing: .04em; }
+  .side-pill.H { background: var(--cool-pale); color: var(--cool-deep); }
+  .side-pill.T { background: var(--warm-pale); color: var(--warm-deep); }
+  .picker-title { font-size: 13px; font-weight: 700; }
+  .choice-chips { display: flex; flex-wrap: wrap; gap: 7px; max-height: 240px; overflow-y: auto; }
+  .cchip {
+    padding: 6px 14px; border-radius: 999px; font-size: 12px;
+    border: 1px solid var(--line); background: rgba(255,255,255,.6);
+    color: var(--ink-2); cursor: pointer; transition: all .15s;
+  }
+  .cchip:hover { border-color: var(--cool); }
+  .cchip.on { border-color: var(--cool); background: var(--cool-pale); color: var(--cool-deep); font-weight: 700; }
+  .cchip.dice { border-color: var(--warm); color: var(--warm-deep); border-style: dashed; }
+  .cchip .lv { font-size: 10px; opacity: .65; margin-left: 4px; }
+  .picker-hint { font-size: 11px; color: var(--ink-3); margin-top: 9px; }
+  .del-marker { font-size: 11px; color: #C05840; cursor: pointer; border: none; background: none; text-decoration: underline; margin-left: auto; }
+  .side-btns { display: flex; gap: 6px; }
+  .side-btns button {
+    padding: 5px 14px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--line); background: rgba(255,255,255,.6); color: var(--ink-2);
+    font-family: var(--font);
+  }
+  .side-btns button.onH { background: var(--cool-pale); color: var(--cool-deep); border-color: var(--cool); font-weight: 700; }
+  .side-btns button.onT { background: var(--warm-pale); color: var(--warm-deep); border-color: var(--warm); font-weight: 700; }
+  .side-btns button.onS { background: rgba(150,160,168,.15); color: var(--ink-2); border-color: var(--ink-3); font-weight: 700; }
+
+  .gen-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .btn {
+    padding: 13px 24px; border-radius: 999px; font-size: 13.5px; cursor: pointer;
+    border: 1px solid var(--glass-border); background: var(--glass); color: var(--ink);
+    font-weight: 700; transition: all .2s; font-family: var(--font); letter-spacing: .02em;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .btn:hover { border-color: var(--cool); background: rgba(255,255,255,.72); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--warm) 0%, #E8845A 100%);
+    border-color: transparent; color: #fff;
+    box-shadow: 0 10px 30px rgba(224,102,60,.35);
+  }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .meta { font-size: 11.5px; color: var(--ink-3); margin-top: 12px; }
+  .provisional { font-size: 11px; color: var(--ink-3); margin-top: 10px; }
+
+  details { margin-top: 24px; }
+  summary { font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+  .side-editor { margin-top: 12px; }
+  .se-row {
+    display: flex; align-items: center; gap: 10px; padding: 7px 0;
+    border-bottom: 1px solid var(--line); font-size: 12.5px;
+  }
+  .se-name { flex: 1; }
+  .se-seq {
+    width: 90px; padding: 4px 10px; border: 1px solid var(--line);
+    border-radius: 10px; font-size: 12px; font-family: monospace;
+    background: rgba(255,255,255,.6);
+  }
+
+  footer { margin-top: 50px; text-align: center; font-size: 10.5px; color: var(--ink-3); letter-spacing: .2em; }
+
+  /* スマホ対応 */
+  @media (max-width: 640px) {
+    .wrap { padding: 16px 12px 60px; }
+    header { padding: 20px 0 16px; }
+    .brand h1 { font-size: 26px; }
+    .card { padding: 14px; border-radius: 18px; }
+    .upload-zone { padding: 22px 12px; }
+    .settings-row { gap: 8px; }
+    .setting { min-width: 100px; }
+    .seg button { padding: 8px 2px; font-size: 11.5px; }
+    .btn { padding: 12px 18px; font-size: 13px; flex: 1; text-align: center; }
+    .gen-row { gap: 8px; }
+    .choice-chips { max-height: 200px; }
+    .cchip { padding: 6px 12px; }
+    .picker { padding: 12px; }
+    .section h2 { font-size: 15.5px; }
+    .note { font-size: 12px; }
+  }
+  /* タップ操作の最適化 */
+  @media (pointer: coarse) {
+    .boundary-hit { r: 14; }
+    .cchip { padding: 8px 15px; font-size: 12.5px; }
+    .seg button { padding: 11px 4px; }
+  }
+  #modelLoading, #analysisArea { margin-top: 14px; }
+  #overlayCanvas { border-radius: 18px !important; border: 1px solid var(--glass-border) !important; box-shadow: 0 16px 50px rgba(62,106,133,.16); }
+  svg text { font-family: var(--font); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand"><h1>STEM</h1><span>LINE DESIGNER</span></div>
+    <p class="tagline">あなたのカービングから、あなただけのラインを作る。</p>
+  </header>
+
+  <div class="main-grid" id="mainGrid">
+  <!-- ① カービング検知 -->
+  <div class="section" id="sec1">
+    <div class="step-num">Step 1 — Carving</div>
+    <h2>カービングを検知する</h2>
+    <p class="note">正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。</p>
+    <div id="uploadZone" class="upload-zone">
+      <input type="file" id="videoInput" accept="video/*" style="display:none;">
+      <div class="uz-icon">🎬</div>
+      <div class="uz-text">タップして動画を選択</div>
+      <div class="uz-sub">mp4 / mov — AIがボード軌道を自動検出</div>
+    </div>
+    <div class="skip-link"><a id="skipAnalysis">動画なしでラインを設計する →</a></div>
+
+    <div id="modelLoading" style="display:none;">
+      <p style="font-size:13px;font-weight:600;">🤖 AI姿勢認識モデルを準備中...</p>
+      <p id="modelStatus" style="font-size:12px;color:var(--ink-3);">初回のみ数秒かかります</p>
+    </div>
+
+    <div id="analysisArea" style="display:none;">
+      <canvas id="overlayCanvas" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;margin-bottom:10px;"></canvas>
+      <div id="progressWrap">
+        <div style="background:var(--line);border-radius:999px;height:8px;overflow:hidden;">
+          <div id="progressBar" style="background:var(--green);height:100%;width:0%;transition:width .2s;"></div>
+        </div>
+        <p id="progressText" style="font-size:12px;color:var(--ink-3);margin-top:6px;">解析中...</p>
+      </div>
+      <div class="gen-row" id="replayRow" style="display:none;">
+        <button class="btn" id="btnReplayAnalysis">🔁 解析映像を再生</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② ラインデザイン -->
+  <div class="section" id="sec2" style="display:none;">
+    <div class="step-num">Step 2 — Design</div>
+    <h2>カービングにステップを当てはめる</h2>
+    <p class="note"><b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。</p>
+
+    <div class="settings-row">
+      <div class="setting">
+        <label>スタンス</label>
+        <div class="seg" id="stanceSeg">
+          <button class="on" data-v="R">レギュラー</button>
+          <button data-v="G">グーフィー</button>
+        </div>
+      </div>
+      <div class="setting" id="startSetting">
+        <label>最初のカーブ</label>
+        <div class="seg" id="startSeg">
+          <button class="on" data-v="H">ヒールサイド</button>
+          <button data-v="T">トゥサイド</button>
+        </div>
+      </div>
+      <div class="setting" id="arcSetting">
+        <label>カービング数</label>
+        <div class="seg" id="arcSeg">
+          <button data-v="3">3</button>
+          <button data-v="4">4</button>
+          <button class="on" data-v="5">5</button>
+          <button data-v="6">6</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="badge orange" id="modeBadge">YOUR LINE</span>
+        <button class="regen" id="btnReAnalyze">別の動画を解析</button>
+      </div>
+      <svg id="designSvg" viewBox="0 0 720 640" aria-label="ライン設計図（俯瞰）"></svg>
+      <div class="picker" id="picker" style="display:none;">
+        <div class="picker-head">
+          <span id="pickerTitle" class="picker-title"></span>
+          <div class="side-btns" id="sideBtns" style="display:none;">
+            <button id="sideH">ヒールサイドカーブ</button>
+            <button id="sideT">トゥサイドカーブ</button>
+            <button id="sideS">直進</button>
+          </div>
+          <button class="del-marker" id="btnDelMarker" style="display:none;">この境界を削除</button>
+        </div>
+        <div class="choice-chips" id="pickerChips"></div>
+        <p class="picker-hint" id="pickerHint"></p>
+      </div>
+      <p class="meta" id="designMeta"></p>
+    </div>
+
+    <div class="settings-row" style="margin-top:16px;margin-bottom:0;">
+      <div class="setting" style="max-width:280px;">
+        <label>おまかせの難易度</label>
+        <div class="seg" id="diffSeg">
+          <button data-v="0">初級</button>
+          <button class="on" data-v="1">中級</button>
+          <button data-v="2">上級</button>
+        </div>
+      </div>
+    </div>
+    <div class="gen-row">
+      <button class="btn primary" id="btnReplay">▶ ラインを再生</button>
+      <button class="btn" id="btnRandomAll">🎲 ステップを全ておまかせ</button>
+      <button class="btn" id="btnUndo">↩ 戻す</button>
+      <button class="btn" id="btnClear">リセット</button>
+    </div>
+
+    <details>
+      <summary>⚙ ステップのカービング数列を確認・修正する</summary>
+      <div class="side-editor" id="sideEditor"></div>
+      <p class="provisional">1=ヒールサイドカーブ、2=トゥサイドカーブ、0=カービングなし、*=どのカーブでも可。左から順にステップ内のカービング。スイッチ版は自動生成（1⇄2反転）。修正はセッション中のみ有効。</p>
+    </details>
+  </div>
+
+  </div><!-- /main-grid -->
+
+  <footer>STEM by Ryo Ogasawara — Longboard Dance Line Designer</footer>
+</div>
+
+<script>
+/* ============================================================
+   STEP DATA — カービング数列（1=ヒール, 2=トゥ, 0=なし, *=自由）
+   ============================================================ */
+const RAW_STEPS = [
+  { name:'クロスステップ',           level:'初級+',  seq:'21' },
+  { name:'BWクロスステップ',         level:'中級',   seq:'1' },
+  { name:'TSクロスステップ',         level:'中級',   seq:'2' },
+  { name:'180ステップ',              level:'初級',   seq:'2' },
+  { name:'スイッチステップ',         level:'初級+',  seq:'21' },
+  { name:'360ステップ',              level:'初級+',  seq:'21' },
+  { name:'BS180ステップ',            level:'初級+',  seq:'1' },
+  { name:'BS360ステップ',            level:'中級',   seq:'12' },
+  { name:'バックフット180ステップ',  level:'初級+',  seq:'2' },
+  { name:'リバース360ステップ',      level:'中級',   seq:'12' },
+  { name:'リバースBS360ステップ',    level:'中級',   seq:'21' },
+  { name:'ピーターパン',             level:'初級',   seq:'2121' },
+  { name:'BWピーターパン',           level:'初級+',  seq:'1212' },
+  { name:'ゴーストライド',           level:'初級',   seq:'0' },
+  { name:'FKピーターパン',           level:'中級',   seq:'2121' },
+  { name:'ペンデュラム',             level:'中級',   seq:'2121' },
+  { name:'ベンドドロップ',           level:'中級',   seq:'0' },
+  { name:'チョップザパン',           level:'初級+',  seq:'2121' },
+  { name:'チョップザウッド',         level:'初級',   seq:'21' },
+  { name:'サイドワインダー',         level:'初級+',  seq:'2121' },
+  { name:'ルックバック',             level:'初級+',  seq:'0' },
+  { name:'ゴーストライドピルエット', level:'初級+',  seq:'0' },
+  { name:'ピルエット',               level:'中級',   seq:'0|2' },
+  { name:'BSピルエット',             level:'中級',   seq:'*' },
+  { name:'ピルエット540',            level:'中級+',  seq:'0' },
+  { name:'ピルエット720',            level:'上級',   seq:'0' },
+  { name:'フェイキーピルエット',     level:'中級',   seq:'0|1', fakie:true },
+  { name:'フェイキーピルエット540',  level:'中級+',  seq:'0|1', fakie:true },
+  { name:'フェイキーピルエット720',  level:'上級',   seq:'0|1', fakie:true },
+  { name:'フェイキーBSピルエット',   level:'中級',   seq:'0|2', fakie:true },
+  { name:'フェイキーBSピルエット540',level:'中級+',  seq:'0|2', fakie:true },
+  { name:'フェイキーBSピルエット720',level:'上級',   seq:'0|2', fakie:true },
+  { name:'ブイスピン',               level:'中級',   seq:'0' },
+  { name:'ボピット',                 level:'中級',   seq:'212' },
+  { name:'スワーリング',             level:'中級',   seq:'21' },
+  { name:'ツイストステップ',         level:'中級',   seq:'121' },
+  { name:'スウィフトステップ',       level:'中級',   seq:'2121' },
+  { name:'ティンカーベル',           level:'初級+',  seq:'2121' },
+  { name:'マンゴーフレッシュ',       level:'中級',   seq:'212121' },
+  { name:'バニーステップ',           level:'初級+',  seq:'21' },
+  { name:'セクスチェンジ',           level:'初級',   seq:'2121' },
+  { name:'スキーヤー',               level:'初級',   seq:'2121', rep:true },
+  { name:'クロスステップスクエア',   level:'中級+',  seq:'21' },
+  { name:'チョップザ360',            level:'中級+',  seq:'21' },
+  { name:'コリアンサルサ',           level:'中級',   seq:'21' },
+  { name:'コリアンクロスステップ',   level:'中級',   seq:'2121', rep:true },
+];
+function flipSeq(seq) {
+  return seq.split('').map(c => c === '1' ? '2' : c === '2' ? '1' : c).join('');
+}
+function buildAllSteps() {
+  const all = [];
+  RAW_STEPS.forEach(s => {
+    all.push({ ...s, sw:false });
+    // フェイキー系は元々スイッチ（後ろ向き）状態のステップなのでスイッチ版は作らない
+    if (/[12]/.test(s.seq) && !s.fakie) {
+      all.push({ name:'スイッチ' + s.name, level:s.level, seq:flipSeq(s.seq), rep:s.rep, sw:true });
+    }
+  });
+  return all;
+}
+let ALL_STEPS = buildAllSteps();
+
+const TRICKS = [
+  { name:'ショービット', cat:'Air', level:'初級' },
+  { name:'BSショービット', cat:'Air', level:'初級+' },
+  { name:'ワンフットショービット', cat:'Air', level:'初級+' },
+  { name:'スウェディッシュショービット', cat:'Air', level:'初級+' },
+  { name:'スラップショービット', cat:'Air', level:'初級+' },
+  { name:'オールドスクールショービット', cat:'Air', level:'初級+' },
+  { name:'シャンカー', cat:'Air', level:'初級+' },
+  { name:'スピンビッグ', cat:'Air', level:'初級+' },
+  { name:'ロシアンショービット', cat:'Air', level:'中級' },
+  { name:'クロスフットショービット', cat:'Air', level:'中級' },
+  { name:'クロスフットダブルレインボー', cat:'Air', level:'中級' },
+  { name:'ポップショービット', cat:'Air', level:'中級' },
+  { name:'FSポップショービット', cat:'Air', level:'中級' },
+  { name:'キックフリップ', cat:'Air', level:'中級' },
+  { name:'ヒールフリップ', cat:'Air', level:'中級' },
+  { name:'ビッグスピン', cat:'Air', level:'中級' },
+  { name:'FS180', cat:'Air', level:'中級' },
+  { name:'BS180', cat:'Air', level:'中級' },
+  { name:'オーリー', cat:'Air', level:'中級~' },
+  { name:'ハンドオーリー', cat:'Air', level:'中級~' },
+  { name:'ショービット360', cat:'Air', level:'中級+' },
+  { name:'オールドスクールショービット360', cat:'Air', level:'中級+' },
+  { name:'FS360', cat:'Air', level:'中級+' },
+  { name:'バリアルフリップ', cat:'Air', level:'中級+' },
+  { name:'FKバリアルフリップ', cat:'Air', level:'中級+' },
+  { name:'FKキックフリップ', cat:'Air', level:'中級+' },
+  { name:'ダブルレインボー', cat:'Air', level:'中級+' },
+  { name:'ワンフットビッグスピン', cat:'Air', level:'中級+' },
+  { name:'オーリーノース', cat:'Air', level:'中級+' },
+  { name:'BS180フリップ', cat:'Air', level:'中級+' },
+  { name:'ポップショービット360', cat:'Air', level:'上級' },
+  { name:'ビガースピン', cat:'Air', level:'上級' },
+  { name:'ビッグフリップ', cat:'Air', level:'上級' },
+  { name:'FK FS ビッグヒールフリップ', cat:'Air', level:'上級' },
+  { name:'ダブルフリップ', cat:'Air', level:'上級' },
+  { name:'フルキャブ', cat:'Air', level:'上級' },
+  { name:'ヒナタレインボー', cat:'Air', level:'上級' },
+  { name:'ノーリートレフリップ', cat:'Air', level:'上級' },
+  { name:'ショービット540', cat:'Air', level:'上級+' },
+  { name:'オールドスクールショービット540', cat:'Air', level:'上級+' },
+  { name:'トリプルフリップ', cat:'Air', level:'上級+' },
+  { name:'ビッグスピンダブルフリップ', cat:'Air', level:'上級+' },
+  { name:'ガゼルスピン', cat:'Air', level:'上級+' },
+  { name:'ドルフィンフリップ', cat:'Air', level:'上級+' },
+  { name:'インポッシブル', cat:'Air', level:'上級+' },
+  { name:'FKインポッシブル', cat:'Air', level:'上級+' },
+  { name:'FSスライド180', cat:'Slide', level:'初級' },
+  { name:'BSスライド180', cat:'Slide', level:'初級+' },
+  { name:'FSノーコンプライスライド180', cat:'Slide', level:'初級+' },
+  { name:'BSノーコンプライスライド180', cat:'Slide', level:'初級+' },
+  { name:'BSノーコンプライスライドショービット', cat:'Slide', level:'初級+' },
+  { name:'FSスピードチェック', cat:'Slide', level:'中級' },
+  { name:'FSスライドショービット', cat:'Slide', level:'中級' },
+  { name:'FSノーコンプライスライドショービット', cat:'Slide', level:'中級' },
+  { name:'BSスピードチェック', cat:'Slide', level:'中級+' },
+  { name:'BSスライドショービット', cat:'Slide', level:'中級+' },
+  { name:'FSスライド360', cat:'Slide', level:'中級+' },
+  { name:'ベイクドブロテート', cat:'Slide', level:'中級+' },
+  { name:'BSノーコンプライスライドショービット360', cat:'Slide', level:'中級+' },
+  { name:'BSスライド360', cat:'Slide', level:'上級' },
+  { name:'BSスライドショービット360', cat:'Slide', level:'上級' },
+  { name:'レディキラースライド', cat:'Slide', level:'上級' },
+  { name:'ケイブマン', cat:'Hand', level:'初級' },
+  { name:'タイガークロー', cat:'Hand', level:'初級' },
+  { name:'BSタイガークロー', cat:'Hand', level:'初級' },
+  { name:'ボンレス', cat:'Hand', level:'初級' },
+  { name:'タイガークロー540', cat:'Hand', level:'初級+' },
+  { name:'BSタイガークロー540', cat:'Hand', level:'初級+' },
+  { name:'ペガサス', cat:'Hand', level:'初級+' },
+  { name:'デーモンクロー', cat:'Hand', level:'初級+' },
+  { name:'アームポッシブル', cat:'Hand', level:'初級+' },
+  { name:'ボンレス180', cat:'Hand', level:'初級+' },
+  { name:'ノーコンプライ180フィンガーフリップ', cat:'Hand', level:'初級+' },
+  { name:'ノーコンプライハンドフリップ', cat:'Hand', level:'初級+' },
+  { name:'ダブルハンドグラブ', cat:'Hand', level:'初級+' },
+  { name:'タイガークローフリップ', cat:'Hand', level:'中級' },
+  { name:'エアログラブ', cat:'Hand', level:'中級' },
+  { name:'ボンレス360', cat:'Hand', level:'中級' },
+  { name:'ボンレスビッグスピン', cat:'Hand', level:'中級' },
+  { name:'ハーフムーン', cat:'Hand', level:'中級' },
+  { name:'トラックスタンド360', cat:'Hand', level:'中級' },
+  { name:'タイガークローダブルフリップ', cat:'Hand', level:'中級+' },
+  { name:'デュオグラブ', cat:'Hand', level:'中級+' },
+  { name:'エアロスラム', cat:'Hand', level:'中級+' },
+  { name:'エアロスラップ', cat:'Hand', level:'中級+' },
+  { name:'エアロツイスト', cat:'Hand', level:'中級+' },
+  { name:'ニンジャフリップ', cat:'Hand', level:'中級+' },
+  { name:'BSニンジャフリップ', cat:'Hand', level:'中級+' },
+  { name:'ボンレスビガースピン', cat:'Hand', level:'中級+' },
+  { name:'フルムーン', cat:'Hand', level:'中級+' },
+  { name:'エアログラブ720', cat:'Hand', level:'上級' },
+  { name:'エアロスラッシュ', cat:'Hand', level:'上級' },
+  { name:'タイタンフリップ', cat:'Hand', level:'上級+' },
+];
+
+const SIDE_LABEL = { H: 'ヒールサイド', T: 'トゥサイド', S: '直進' };
+const flip = s => s === 'H' ? 'T' : 'H';
+const digitToSide = d => d === '1' ? 'H' : 'T';
+const sideToDigit = s => s === 'H' ? '1' : '2';
+
+/* スタンスが反転するステップ（このステップの後はスイッチ版のみ選択可能になる）*/
+const STANCE_INVERTERS = ['180ステップ','BS180ステップ','バックフット180ステップ','ルックバック','ピルエット540','ベンドドロップ'];
+function isInverter(name) {
+  const base = name.startsWith('スイッチ') ? name.slice(4) : name;
+  return STANCE_INVERTERS.includes(base);
+}
+
+/* ステップの難易度グループ: 0=初級系, 1=中級系, 2=上級系
+   スイッチ版は通常より難しいため1段階上げる（例: 180ステップ=初級 → スイッチ180ステップ=中級）*/
+function levelGroup(step) {
+  let g = step.level.startsWith('初級') ? 0 : step.level.startsWith('中級') ? 1 : 2;
+  if (step.sw) g = Math.min(g + 1, 2);
+  return g;
+}
+
+/* セグメントjの時点でのスタンス向き: 1=ノーマル, -1=スイッチ
+   jより前に終わっている反転ステップの数で決まる */
+function orientationAt(j) {
+  let ori = 1;
+  assignments.forEach(a => {
+    if (a.seg + a.span <= j && isInverter(a.name)) ori = -ori;
+  });
+  return ori;
+}
+
+/* ============================================================
+   STATE
+   boundaries: 丸印のf値(0-1)。両端(0,1)は固定
+   segments: 隣り合う境界の間 = 1カービング
+   assignments: [{seg, name, span}] ステップは連続セグメントを消費
+   ============================================================ */
+let stance = 'R';
+let startSide = 'H';   // designモードの最初のカーブ
+let segCount = 5;      // designモードのカービング数
+let boundaries = [];   // analyzedモードの内部境界f値（0,1除く）
+let sideOverrides = {}; // segIdx -> 'H'|'T' 手動上書き
+let assignments = [];  // {seg, name, span}
+let finishTrick = null;
+let selected = null;   // {type:'seg'|'boundary'|'finish', i}
+let analyzedPath = null;
+let animating = false;
+let landmarkCache = []; // 解析リプレイ用
+let _clickState = null; // 手動ダブルクリック検出用
+let _history = [];       // Undo履歴
+
+function pushHistory() {
+  _history.push(JSON.stringify({
+    boundaries, sideOverrides, assignments, finishTrick, segCount
+  }));
+  if (_history.length > 50) _history.shift();
+}
+function undo() {
+  if (!_history.length) return;
+  const s = JSON.parse(_history.pop());
+  boundaries = s.boundaries; sideOverrides = s.sideOverrides;
+  assignments = s.assignments; finishTrick = s.finishTrick; segCount = s.segCount;
+  document.querySelectorAll('#arcSeg button').forEach(b => b.classList.toggle('on', +b.dataset.v === segCount));
+  selected = null;
+  renderDesign(); renderPicker();
+}
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+});
+
+function allBoundaries() {
+  if (analyzedPath) return [0, ...boundaries.slice().sort((a,b)=>a-b), 1];
+  return Array.from({length: segCount + 1}, (_, i) => i / segCount);
+}
+function numSegments() { return allBoundaries().length - 1; }
+
+/* セグメントの曲率からサイドを自動分類（弦からの最大偏差の符号）*/
+/* ============================================================
+   SPLINE HELPERS — 丸印(頂点)そのものを制御点として滑らかな曲線を作る。
+   これにより「丸印の位置」と「曲線の形」が構造上必ず一致する。
+   ============================================================ */
+
+/* 密な参照データ(analyzedPath.dense)から、任意の前進距離fyにおけるxを線形補間で求める */
+function xAtFy(fy) {
+  const d = analyzedPath.dense;
+  if (fy <= d[0].fy) return d[0].x;
+  if (fy >= d[d.length-1].fy) return d[d.length-1].x;
+  let lo = 0, hi = d.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (d[mid].fy < fy) lo = mid; else hi = mid;
+  }
+  const span = d[hi].fy - d[lo].fy;
+  const t = span > 1e-9 ? (fy - d[lo].fy) / span : 0;
+  return d[lo].x + (d[hi].x - d[lo].x) * t;
+}
+
+/* 境界(丸印)の前進距離fyに対応するx。固定された実軌道(dense)上の位置を補間で求める。
+   丸印は軌道上をスライドするだけなので、常にdense上の点を返す（軌道は不変）*/
+function xForBoundary(f) {
+  return xAtFy(f);
+}
+
+/* 画面座標の点列からCatmull-Rom相当の滑らかな3次ベジェ制御点列を生成
+   （全ての元の点を正確に通る。両端は仮想的に複製して自然な終端にする）
+   tension を小さくすると制御点が長くなり、丸印間で横に膨らむ半円状の弧になる */
+function catmullRomToBezierSegments(P, tension = 4.2) {
+  const n = P.length;
+  const segs = [];
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = P[Math.max(0, i - 1)];
+    const p1 = P[i];
+    const p2 = P[i + 1];
+    const p3 = P[Math.min(n - 1, i + 2)];
+    const c1 = { x: p1.x + (p2.x - p0.x) / tension, y: p1.y + (p2.y - p0.y) / tension };
+    const c2 = { x: p2.x - (p3.x - p1.x) / tension, y: p2.y - (p3.y - p1.y) / tension };
+    segs.push({ p0: p1, c1, c2, p1: p2 });
+  }
+  return segs;
+}
+
+/* 3次ベジェセグメントをt(0-1)で評価（De Casteljau）。区間内の任意位置を厳密に取得できる */
+function evalCubic(seg, t) {
+  const mt = 1 - t;
+  const x = mt*mt*mt*seg.p0.x + 3*mt*mt*t*seg.c1.x + 3*mt*t*t*seg.c2.x + t*t*t*seg.p1.x;
+  const y = mt*mt*mt*seg.p0.y + 3*mt*mt*t*seg.c1.y + 3*mt*t*t*seg.c2.y + t*t*t*seg.p1.y;
+  return { x, y };
+}
+
+/* セグメント配列(segs)の[a, b)区間をなめらかに均等サンプリングして点列を返す（複数区間にまたがるステップ表示用） */
+function sampleSegs(segs, a, b, samplesPerSeg = 10) {
+  const out = [];
+  for (let i = a; i < b; i++) {
+    const seg = segs[i];
+    if (!seg) continue;
+    for (let k = 0; k <= samplesPerSeg; k++) {
+      if (i > a && k === 0) continue; // 前区間の終点と重複しない
+      out.push(evalCubic(seg, k / samplesPerSeg));
+    }
+  }
+  return out;
+}
+
+/* セグメントの向き分類（analyzedモード）: 隣り合う丸印の実座標x差分の符号で厳密に判定
+   曲線はこの2点を通る滑らかな弧として描画されるため、差分の符号=そのカーブの向きと一致する */
+function classifySegmentByX(x0, x1) {
+  const dx = x1 - x0;
+  const range = Math.max(...analyzedPath.dense.map(p => Math.abs(p.x)), 0.12) * 2;
+  const mag = Math.abs(dx) / range;
+  if (mag < 0.02) return 'S';   // ほぼ変化なし → 直進（助走）
+  if (mag < 0.04) return null;  // 微妙 → 手動指定へ
+  const right = dx > 0;
+  const toe = stance === 'R' ? right : !right;
+  return toe ? 'T' : 'H';
+}
+
+/* 全セグメントのサイド（自動分類＋手動上書き）*/
+let _segSideCache = null;
+function segmentSides() {
+  const bs = allBoundaries();
+  const sides = [];
+  if (analyzedPath) {
+    const xs = bs.map(f => xForBoundary(f));
+    for (let i = 0; i < bs.length - 1; i++) {
+      if (sideOverrides[i] !== undefined) { sides.push(sideOverrides[i]); continue; }
+      sides.push(classifySegmentByX(xs[i], xs[i+1]));
+    }
+  } else {
+    for (let i = 0; i < bs.length - 1; i++) {
+      if (sideOverrides[i] !== undefined) { sides.push(sideOverrides[i]); continue; }
+      sides.push(i % 2 === 0 ? startSide : flip(startSide));
+    }
+  }
+  _segSideCache = sides;
+  return sides;
+}
+
+/* セグメントが既存ステップに占有されているか */
+function occupiedBy(segIdx) {
+  return assignments.find(a => segIdx >= a.seg && segIdx < a.seg + a.span) || null;
+}
+
+/* セグメントjから始められるステップ候補 */
+/* 単一数列がセグメントjにフィットするか（'0'/'*'/'12'等） */
+/* 各カービング区間の相対的な長さ（前進距離fyの幅）を返す */
+function segmentLengths() {
+  const bs = allBoundaries();
+  const lens = [];
+  for (let i = 0; i < bs.length - 1; i++) lens.push(bs[i+1] - bs[i]);
+  return lens;
+}
+
+/* fine制約チェック: stepのfineで指定されたローカルindexの区間が
+   その両隣の（ステップ内の）区間より短い（細かい）ことを要求する */
+function fineOK(step, j) {
+  if (!step.fine) return true;
+  const lens = segmentLengths();
+  for (const localIdx of step.fine) {
+    const gi = j + localIdx;
+    const target = lens[gi];
+    if (target === undefined) return false;
+    // ステップ内の隣接区間と比較（前後どちらか隣があればそれより短いこと）
+    const prev = lens[gi - 1], next = lens[gi + 1];
+    const neighbors = [prev, next].filter(v => v !== undefined);
+    if (!neighbors.length) continue;
+    const avgNeighbor = neighbors.reduce((a,b)=>a+b,0) / neighbors.length;
+    if (target > avgNeighbor * 0.75) return false; // 隣の75%以下でなければ「細かい」と認めない
+  }
+  return true;
+}
+
+function seqFitsAt(seq, j, sides, step) {
+  const n = numSegments();
+  // '0' = カービングを含まないステップ → カーブ中には置けない。直進（助走）区間にのみ配置可能
+  if (seq === '0') return !occupiedBy(j) && sides[j] === 'S';
+  if (seq === '*') return !occupiedBy(j) && (sides[j] === 'H' || sides[j] === 'T');
+  if (j + seq.length > n) return false;
+  for (let k = 0; k < seq.length; k++) {
+    if (occupiedBy(j + k)) return false;
+    const need = digitToSide(seq[k]);
+    if (sides[j + k] === null || sides[j + k] === 'S') return false;
+    if (sides[j + k] !== need) return false;
+  }
+  if (step && !fineOK(step, j)) return false;
+  return true;
+}
+
+/* '0|1' のような選択式数列も含めてフィット判定。マッチした数列を返す */
+function matchSeqAt(step, j, sides) {
+  const alts = step.seq.split('|');
+  // カーブ有りの選択肢を優先してマッチ
+  const ordered = alts.slice().sort((a, b) => (b !== '0' ? 1 : 0) - (a !== '0' ? 1 : 0));
+  for (const alt of ordered) {
+    if (seqFitsAt(alt, j, sides, step)) return alt;
+  }
+  return null;
+}
+
+function stepSpan(step, matchedAlt) {
+  const alt = matchedAlt || step.seq.split('|')[0];
+  return (alt === '0' || alt === '*') ? 1 : alt.length;
+}
+
+function candidatesAt(j, sides) {
+  const ori = orientationAt(j);
+  return ALL_STEPS.filter(s => {
+    if (s.fakie) {
+      // フェイキー系 = 後ろ向き（スイッチ状態）で始まるステップ → 反転ステップ後のみ
+      if (ori !== -1) return false;
+    } else {
+      // スタンス向きフィルタ: ノーマル中は通常版のみ / 反転ステップ後はスイッチ版のみ
+      if (ori === 1 && s.sw) return false;
+      if (ori === -1 && !s.sw) return false;
+    }
+    return matchSeqAt(s, j, sides) !== null;
+  });
+}
+
+/* ============================================================
+   FIGURE
+   ============================================================ */
+const SVG_W = 720, SVG_H = 640, MT = 60, MB = 64;
+const PATH_CX = 250, VIDEO_X = 500;
+
+function pathGeom() {
+  if (analyzedPath) {
+    const dense = analyzedPath.dense;
+    const xAbs = Math.max(...dense.map(p => Math.abs(p.x)), 0.12);
+    const xMin = -xAbs*1.15, xMax = xAbs*1.15;
+    const toX = v => 60 + (v - xMin)/(xMax - xMin) * (440 - 60);
+    const toY = fy => MT + (1 - fy) * (SVG_H - MT - MB); // 前進距離ベース
+
+    // 軌道は解析した実データ(dense)から描く固定の曲線。丸印を動かしても変化しない。
+    const P = dense.map(p => ({ x: toX(p.x), y: toY(p.fy) }));
+    const segs = catmullRomToBezierSegments(P, 6);
+    let d = `M ${P[0].x} ${P[0].y}`;
+    segs.forEach(seg => {
+      d += ` C ${seg.c1.x} ${seg.c1.y}, ${seg.c2.x} ${seg.c2.y}, ${seg.p1.x} ${seg.p1.y}`;
+    });
+    return { d, toX, toY };
+  } else {
+    const stanceMul = stance === 'R' ? 1 : -1;
+    const botY = SVG_H - MB, span = botY - MT;
+    const n = segCount;
+    const segH = span / n;
+    const amp = Math.min(170, segH * 0.85);
+    let d = `M ${PATH_CX} ${botY}`;
+    for (let i = 0; i < n; i++) {
+      const y0 = botY - segH * i;
+      const y1 = y0 - segH;
+      const side = i % 2 === 0 ? startSide : flip(startSide);
+      const dir = (side === 'T' ? 1 : -1) * stanceMul;
+      const px = PATH_CX + dir * amp;
+      d += ` C ${px} ${y0}, ${px} ${y1}, ${PATH_CX} ${y1}`;
+    }
+    return { d };
+  }
+}
+
+function renderDesign(animate = false) {
+  const svg = document.getElementById('designSvg');
+  const geom = pathGeom();
+  const d = geom.d;
+
+  svg.innerHTML = `
+    <line x1="${PATH_CX}" y1="${MT}" x2="${PATH_CX}" y2="${SVG_H-MB}" stroke="rgba(62,106,133,0.10)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="${PATH_CX}" y="${SVG_H - MB + 30}" font-size="10" fill="#5E8CA7" text-anchor="middle" font-family="sans-serif" letter-spacing="2">▲ START（手前）</text>
+    <path id="pathHit" d="${d}" fill="none" stroke="transparent" stroke-width="30"/>
+    <path id="linePath" d="${d}" fill="none" stroke="${analyzedPath ? '#E0663C' : '#5E8CA7'}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <g id="stepOverlays"></g>
+    <g id="segHits"></g>
+    <g id="markers"></g>
+    <g id="videoBoxes"></g>`;
+
+  const pathEl = svg.querySelector('#linePath');
+  const totalLen = pathEl.getTotalLength();
+  const bs = allBoundaries();
+  const sides = segmentSides();
+
+  // 無効になったassignmentsを除去（境界移動でサイドが変わった場合）
+  assignments = assignments.filter(a => {
+    const st = ALL_STEPS.find(s => s.name === a.name);
+    if (!st) return false;
+    if (a.seg >= numSegments()) return false;
+    const alts = st.seq.split('|');
+    return alts.some(alt => {
+      if (alt === '0') return sides[a.seg] === 'S'; // カービングなしステップは直進区間のみ
+      if (alt === '*') return sides[a.seg] === 'H' || sides[a.seg] === 'T';
+      if (a.seg + alt.length > numSegments()) return false;
+      for (let k = 0; k < alt.length; k++) {
+        if (sides[a.seg + k] !== digitToSide(alt[k])) return false;
+      }
+      return true;
+    });
+  });
+
+  /* 座標取得ヘルパー: 固定軌道上で前進距離fyに対応する画面座標を返す。
+     dense配列を直接二分探索して補間するため getPointAtLength を使わず高速。
+     dense.fy は単調増加なのでO(log n)で厳密に求まる。 */
+  const _dense = analyzedPath ? analyzedPath.dense : null;
+  const _xAbs = _dense ? Math.max(..._dense.map(p => Math.abs(p.x)), 0.12) : 1;
+  const _xMin = -_xAbs*1.15, _xMax = _xAbs*1.15;
+  const _toX = v => 60 + (v - _xMin)/(_xMax - _xMin) * (440 - 60);
+  const _toY = fy => MT + (1 - fy) * (SVG_H - MT - MB);
+  function pointAtFy(fy) {
+    if (!analyzedPath) {
+      const p = pathEl.getPointAtLength(totalLen * fy);
+      return { x: p.x, y: p.y };
+    }
+    const d = _dense;
+    if (fy <= d[0].fy) return { x: _toX(d[0].x), y: _toY(d[0].fy) };
+    if (fy >= d[d.length-1].fy) return { x: _toX(d[d.length-1].x), y: _toY(d[d.length-1].fy) };
+    let lo = 0, hi = d.length - 1;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (d[mid].fy < fy) lo = mid; else hi = mid;
+    }
+    const span = d[hi].fy - d[lo].fy;
+    const t = span > 1e-9 ? (fy - d[lo].fy) / span : 0;
+    const x = d[lo].x + (d[hi].x - d[lo].x) * t;
+    return { x: _toX(x), y: _toY(fy) };
+  }
+  function pointAtBoundary(i) {
+    return pointAtFy(bs[i]);
+  }
+  function sampleRange(f0Idx, f1Idx, count) {
+    // 境界インデックスf0Idx〜f1Idxの区間を、固定軌道上でfyに沿ってサンプリング
+    const f0 = bs[f0Idx], f1 = bs[f1Idx];
+    const out = [];
+    for (let k = 0; k <= count; k++) {
+      out.push(pointAtFy(f0 + (f1 - f0) * k / count));
+    }
+    return out;
+  }
+
+  // ステップ区間表示: 軌道の脇のブラケット線。ステップが切り替わるごとに寒色⇄暖色を交互に切り替え、
+  // どこで次のステップに移るかが色の変化で分かるようにする。
+  const BRACKET_WARM = '#E0663C', BRACKET_COOL = '#3E6A85';
+  let overlays = '';
+  const sortedAssign = assignments.slice().sort((a,b)=>a.seg-b.seg);
+  sortedAssign.forEach((a, ai) => {
+    const ACCENT = ai % 2 === 0 ? BRACKET_WARM : BRACKET_COOL;
+    const ptsArr = sampleRange(a.seg, a.seg + a.span, Math.max(20, a.span * 14));
+    const mid = ptsArr[Math.floor(ptsArr.length / 2)];
+    // ステップが占める側（軌道が主に左右どちらに膨らむか）を判定してブラケットを外側に置く
+    const avgX = ptsArr.reduce((s,p)=>s+p.x,0) / ptsArr.length;
+    let dir = avgX >= PATH_CX ? 1 : -1;
+    if (avgX < 150) dir = 1;
+    if (avgX > VIDEO_X - 160) dir = -1;
+    const OFF = 16; // 軌道からブラケットまでの距離
+    // 軌道に沿ってオフセットした括弧線（各点の法線方向にずらす）
+    const bpts = ptsArr.map((p, k) => {
+      const prev = ptsArr[Math.max(0, k-1)], next = ptsArr[Math.min(ptsArr.length-1, k+1)];
+      const tx = next.x - prev.x, ty = next.y - prev.y;
+      const len = Math.hypot(tx, ty) || 1;
+      // 法線 (ty, -tx) を正規化して dir 側へ
+      const nx = (ty / len) * dir, ny = (-tx / len) * dir;
+      return { x: p.x + nx * OFF, y: p.y + ny * OFF };
+    });
+    const p0 = bpts[0], pEnd = bpts[bpts.length - 1];
+    // 端の「かぎ」（軌道側へ折れる短い線）
+    const tick0 = ptsArr[0], tickE = ptsArr[ptsArr.length - 1];
+    overlays += `<polyline points="${bpts.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="${ACCENT}" stroke-width="1.8" opacity="0.65" class="step-overlay" data-seg="${a.seg}"/>
+      <line x1="${p0.x}" y1="${p0.y}" x2="${tick0.x}" y2="${tick0.y}" stroke="${ACCENT}" stroke-width="1.8" opacity="0.65"/>
+      <line x1="${pEnd.x}" y1="${pEnd.y}" x2="${tickE.x}" y2="${tickE.y}" stroke="${ACCENT}" stroke-width="1.8" opacity="0.65"/>`;
+    // ラベル: ブラケットのさらに外側に離し、白いハロー(縁取り)で軌道と被っても読めるようにする
+    const bmid = bpts[Math.floor(bpts.length / 2)];
+    const lx = Math.max(14, Math.min(VIDEO_X - 14, bmid.x + dir * 22));
+    const anchor = dir > 0 ? 'start' : 'end';
+    overlays += `<g class="step-label" data-seg="${a.seg}">
+      <text x="${lx}" y="${bmid.y + 4}" font-size="11.5" font-weight="700" fill="${ACCENT}"
+        stroke="rgba(255,255,255,0.92)" stroke-width="4" paint-order="stroke" stroke-linejoin="round"
+        text-anchor="${anchor}" font-family="sans-serif" pointer-events="none">${a.name}</text>
+    </g>`;
+  });
+  svg.querySelector('#stepOverlays').innerHTML = overlays;
+
+  // セグメントのヒット領域＋未分類マーカー
+  let segHits = '';
+  for (let i = 0; i < bs.length - 1; i++) {
+    const ptsArr = sampleRange(i, i + 1, 12);
+    const mid = ptsArr[Math.floor(ptsArr.length / 2)];
+    const isSel = selected && selected.type === 'seg' && selected.i === i;
+    segHits += `<polyline class="seg-hit" data-i="${i}" points="${ptsArr.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="${isSel ? 'rgba(94,140,167,0.22)' : 'transparent'}" stroke-width="24" stroke-linecap="round"/>`;
+    if (sides[i] === null) {
+      segHits += `<text x="${mid.x}" y="${mid.y + 4}" font-size="13" fill="#C05840" text-anchor="middle" font-family="sans-serif" pointer-events="none">?</text>`;
+    }
+  }
+  svg.querySelector('#segHits').innerHTML = segHits;
+
+  // 境界丸印（両端は小さく固定表示、内部はドラッグ可能）
+  let marks = '';
+  bs.forEach((f, i) => {
+    const p = pointAtBoundary(i);
+    const isEnd = (i === 0 || i === bs.length - 1);
+    const isSel = selected && selected.type === 'boundary' && selected.i === i;
+    if (isEnd) {
+      marks += `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${i === 0 ? '#5E8CA7' : '#96A0A8'}"/>`;
+    } else {
+      marks += `${isSel ? `<circle cx="${p.x}" cy="${p.y}" r="16" fill="none" stroke="#5E8CA7" stroke-width="2"/>` : ''}
+        <circle class="boundary-hit" data-i="${i}" cx="${p.x}" cy="${p.y}" r="10" fill="#ffffff" stroke="#5A646D" stroke-width="2.5"/>`;
+    }
+  });
+  // FINISH
+  const endP = pointAtBoundary(bs.length - 1);
+  const finSel = selected && selected.type === 'finish';
+  marks += `<g class="finish-label">
+    ${finSel ? `<circle cx="${endP.x}" cy="${endP.y - 22}" r="16" fill="none" stroke="#5E8CA7" stroke-width="2"/>` : ''}
+    <circle class="finish-hit" cx="${endP.x}" cy="${endP.y - 22}" r="11" fill="${finishTrick ? '#3E6A85' : '#ffffff'}" stroke="${finishTrick ? '#3E6A85' : '#96A0A8'}" stroke-width="2.5" style="cursor:pointer;"/>
+    <text x="${endP.x + 18}" y="${endP.y - 18}" font-size="11.5" font-weight="600" fill="${finishTrick ? '#3E6A85' : '#96A0A8'}" font-family="sans-serif" pointer-events="none">FINISH: ${finishTrick || 'トリックで締める'}</text>
+  </g>`;
+  svg.querySelector('#markers').innerHTML = marks;
+
+  // 動画枠カラム
+  renderVideoBoxes(svg);
+
+  // イベント
+  bindSvgEvents(svg, pathEl, totalLen, pointAtFy);
+
+  const stepCount = assignments.length;
+  document.getElementById('designMeta').textContent =
+    `カービング: ${numSegments()} ・ ステップ: ${stepCount}${finishTrick ? ' ・ FINISH: ' + finishTrick : ''} ・ スタンス: ${stance === 'R' ? 'レギュラー' : 'グーフィー'}`;
+
+
+  if (animate) playLine();
+}
+
+function renderVideoBoxes(svg) {
+  let boxes = '';
+  const sorted = assignments.slice().sort((a,b) => a.seg - b.seg);
+  const boxH = 52, boxGap = 8;
+  sorted.forEach((a, k) => {
+    const by = SVG_H - MB - (k + 1) * (boxH + boxGap);
+    boxes += `<g class="video-box" data-seg="${a.seg}" id="vbox-${k}">
+      <rect x="${VIDEO_X}" y="${by}" width="200" height="${boxH}" rx="10" fill="rgba(255,255,255,0.75)" stroke="rgba(62,106,133,0.18)"/>
+      <rect x="${VIDEO_X + 8}" y="${by + 8}" width="62" height="${boxH - 16}" rx="6" fill="rgba(94,140,167,0.10)"/>
+      <text x="${VIDEO_X + 39}" y="${by + boxH/2 + 4}" font-size="14" text-anchor="middle">🎬</text>
+      <text x="${VIDEO_X + 80}" y="${by + 22}" font-size="10.5" font-weight="600" fill="#2A3138" font-family="sans-serif">${k + 1}. ${a.name.length > 11 ? a.name.slice(0,11) + '…' : a.name}</text>
+      <text x="${VIDEO_X + 80}" y="${by + 38}" font-size="9" fill="#96A0A8" font-family="sans-serif">動画準備中</text>
+    </g>`;
+  });
+  if (finishTrick) {
+    const by = SVG_H - MB - (sorted.length + 1) * (boxH + boxGap);
+    boxes += `<g class="video-box finish-label" id="vbox-finish">
+      <rect x="${VIDEO_X}" y="${by}" width="200" height="${boxH}" rx="10" fill="#ffffff" stroke="#3E6A85"/>
+      <rect x="${VIDEO_X + 8}" y="${by + 8}" width="62" height="${boxH - 16}" rx="6" fill="rgba(94,140,167,0.15)"/>
+      <text x="${VIDEO_X + 39}" y="${by + boxH/2 + 4}" font-size="14" text-anchor="middle">🎬</text>
+      <text x="${VIDEO_X + 80}" y="${by + 22}" font-size="10.5" font-weight="600" fill="#3E6A85" font-family="sans-serif">FINISH: ${finishTrick.length > 8 ? finishTrick.slice(0,8) + '…' : finishTrick}</text>
+      <text x="${VIDEO_X + 80}" y="${by + 38}" font-size="9" fill="#96A0A8" font-family="sans-serif">動画準備中</text>
+    </g>`;
+  }
+  if (!sorted.length && !finishTrick) {
+    boxes += `<text x="${VIDEO_X + 100}" y="${SVG_H/2 - 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ステップを選ぶと</text>
+      <text x="${VIDEO_X + 100}" y="${SVG_H/2 + 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ここに動画が並びます</text>`;
+  }
+  svg.querySelector('#videoBoxes').innerHTML = boxes;
+}
+
+/* ============================================================
+   EVENTS: セグメントタップ / 境界ドラッグ / 軌道タップで境界追加
+   ============================================================ */
+function svgPoint(svg, e) {
+  const pt = svg.createSVGPoint();
+  const src = e.touches ? e.touches[0] : e;
+  pt.x = src.clientX; pt.y = src.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+function nearestF(pathEl, totalLen, p, res = 200) {
+  let bestF = 0, bestD = Infinity;
+  for (let k = 0; k <= res; k++) {
+    const f = k / res;
+    const q = pathEl.getPointAtLength(totalLen * f);
+    const dd = (q.x - p.x)**2 + (q.y - p.y)**2;
+    if (dd < bestD) { bestD = dd; bestF = f; }
+  }
+  return { f: bestF, d: Math.sqrt(bestD) };
+}
+
+let dragState = null;
+
+function bindSvgEvents(svg, pathEl, totalLen, pointAtFy) {
+  // セグメントタップ（クリック1回=選択を遅延実行、素早い2回目=頂点追加）
+  svg.querySelectorAll('.seg-hit').forEach(el => {
+    el.onclick = (e) => {
+      e.stopPropagation();
+      const now = performance.now();
+      const p = svgPoint(svg, e);
+      if (_clickState && now - _clickState.t < 350 && Math.hypot(p.x - _clickState.x, p.y - _clickState.y) < 30) {
+        // ダブルクリック → 頂点追加
+        clearTimeout(_clickState.timer);
+        _clickState = null;
+        addBoundaryAt(p);
+        return;
+      }
+      const segIdx = +el.dataset.i;
+      _clickState = {
+        t: now, x: p.x, y: p.y,
+        timer: setTimeout(() => {
+          _clickState = null;
+          selected = { type:'seg', i: segIdx };
+          renderDesign(); renderPicker();
+        }, 300)
+      };
+    };
+  });
+  // FINISH
+  const fin = svg.querySelector('.finish-hit');
+  if (fin) fin.onclick = (e) => {
+    e.stopPropagation();
+    selected = { type:'finish' };
+    renderDesign(); renderPicker();
+  };
+  // 境界: ドラッグ（クリックで選択も）
+  svg.querySelectorAll('.boundary-hit').forEach(el => {
+    const start = (e) => {
+      e.preventDefault(); e.stopPropagation();
+      dragState = { i: +el.dataset.i, moved: false, pushed: false };
+    };
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchstart', start, { passive: false });
+  });
+
+  const move = (e) => {
+    if (!dragState || !analyzedPath) return;
+    e.preventDefault();
+    if (!dragState.pushed) { pushHistory(); dragState.pushed = true; }
+    dragState.moved = true;
+    const p = svgPoint(svg, e);
+    const fyFromY = 1 - (p.y - MT) / (SVG_H - MT - MB);
+    const bs = allBoundaries();
+    const i = dragState.i;
+    const lo = bs[i - 1] + 0.02, hi = bs[i + 1] - 0.02;
+    const clamped = Math.max(lo, Math.min(hi, fyFromY));
+    const sorted = boundaries.slice().sort((a,b)=>a-b);
+    const inner = sorted[i - 1];
+    const idx = boundaries.indexOf(inner);
+    if (idx < 0) return;
+
+    // 軽量プレビュー: ドラッグ中は丸印の円だけを直接動かし、全体の再描画はrAFで間引く
+    const sel = svg.querySelector(`.boundary-hit[data-i="${dragState.i}"]`);
+    if (sel) {
+      const pt = pointAtFy(clamped);
+      sel.setAttribute('cx', pt.x);
+      sel.setAttribute('cy', pt.y);
+    }
+    dragState.pendingFy = clamped;
+    dragState.idx = idx;
+    if (!dragState.raf) {
+      dragState.raf = requestAnimationFrame(() => {
+        if (dragState) {
+          boundaries[dragState.idx] = dragState.pendingFy;
+          dragState.raf = null;
+          renderDesign();
+          // 再描画で参照が変わるので次フレームのためドラッグ継続情報は保持
+        }
+      });
+    }
+  };
+  const up = () => {
+    if (dragState) {
+      if (dragState.raf) cancelAnimationFrame(dragState.raf);
+      if (!dragState.moved) {
+        selected = { type:'boundary', i: dragState.i };
+        renderDesign(); renderPicker();
+      } else if (dragState.pendingFy !== undefined) {
+        boundaries[dragState.idx] = dragState.pendingFy;
+        renderDesign();
+      }
+    }
+    dragState = null;
+  };
+  svg.onmousemove = move; svg.ontouchmove = move;
+  svg.onmouseup = up; svg.ontouchend = up; svg.onmouseleave = () => { dragState = null; };
+
+  // 軌道ダブルクリック（pathHit直上）でも頂点追加
+  svg.querySelector('#pathHit').onclick = (e) => {
+    const now = performance.now();
+    const p = svgPoint(svg, e);
+    if (_clickState && now - _clickState.t < 350 && Math.hypot(p.x - _clickState.x, p.y - _clickState.y) < 30) {
+      clearTimeout(_clickState.timer);
+      _clickState = null;
+      addBoundaryAt(p);
+      return;
+    }
+    _clickState = { t: now, x: p.x, y: p.y, timer: setTimeout(() => { _clickState = null; }, 350) };
+  };
+
+  function addBoundaryAt(p) {
+    const { f, d: dist } = nearestF(pathEl, totalLen, p);
+    if (dist > 30) return;
+    const bs = allBoundaries();
+    if (bs.some(bf => Math.abs(bf - f) < 0.04)) return;
+    pushHistory();
+    if (analyzedPath) {
+      boundaries.push(f);
+      sideOverrides = {};
+      assignments = [];
+    } else {
+      segCount = Math.min(segCount + 1, 9);
+      assignments = [];
+      sideOverrides = {};
+      document.querySelectorAll('#arcSeg button').forEach(b => b.classList.toggle('on', +b.dataset.v === segCount));
+    }
+    selected = null;
+    renderDesign(); renderPicker();
+  }
+}
+
+/* ============================================================
+   PICKER
+   ============================================================ */
+function renderPicker() {
+  const picker = document.getElementById('picker');
+  const delBtn = document.getElementById('btnDelMarker');
+  const sideBtns = document.getElementById('sideBtns');
+  if (!selected) { picker.style.display = 'none'; return; }
+  picker.style.display = 'block';
+  const chips = document.getElementById('pickerChips');
+  chips.innerHTML = '';
+  const hint = document.getElementById('pickerHint');
+  delBtn.style.display = 'none';
+  sideBtns.style.display = 'none';
+
+  if (selected.type === 'finish') {
+    document.getElementById('pickerTitle').textContent = 'FINISH — ラインを締めるトリック';
+    hint.textContent = 'wikiのAir・Slide・Handカテゴリ（Plant・Balanceは今後追加）';
+    const none = document.createElement('span');
+    none.className = 'cchip' + (finishTrick == null ? ' on' : '');
+    none.textContent = 'トリックなしで流す';
+    none.onclick = () => { pushHistory(); finishTrick = null; renderDesign(); renderPicker(); };
+    chips.appendChild(none);
+    // 部分ランダム
+    const dice = document.createElement('span');
+    dice.className = 'cchip dice';
+    dice.textContent = '🎲 おまかせで選ぶ';
+    dice.onclick = () => {
+      pushHistory();
+      finishTrick = TRICKS[Math.floor(Math.random() * TRICKS.length)].name;
+      renderDesign(); renderPicker();
+    };
+    chips.appendChild(dice);
+    ['Air','Slide','Hand'].forEach(cat => {
+      TRICKS.filter(t => t.cat === cat).forEach(t => {
+        const c = document.createElement('span');
+        c.className = 'cchip' + (finishTrick === t.name ? ' on' : '');
+        c.innerHTML = `${t.name}<span class="lv">${t.cat}・${t.level}</span>`;
+        c.onclick = () => { pushHistory(); finishTrick = t.name; renderDesign(); renderPicker(); };
+        chips.appendChild(c);
+      });
+    });
+    return;
+  }
+
+  if (selected.type === 'boundary') {
+    document.getElementById('pickerTitle').textContent = `境界 ${selected.i} — ドラッグで位置を調整できます`;
+    hint.textContent = '境界を削除するとカービングが結合されます';
+    if (analyzedPath) {
+      delBtn.style.display = 'inline';
+      delBtn.onclick = () => {
+        pushHistory();
+        const bs = allBoundaries();
+        const f = bs[selected.i];
+        boundaries = boundaries.filter(bf => Math.abs(bf - f) > 0.001);
+        sideOverrides = {}; assignments = [];
+        selected = null;
+        renderDesign(); renderPicker();
+      };
+    } else if (segCount > 2) {
+      delBtn.style.display = 'inline';
+      delBtn.onclick = () => {
+        pushHistory();
+        segCount--;
+        assignments = []; sideOverrides = {};
+        document.querySelectorAll('#arcSeg button').forEach(b => b.classList.toggle('on', +b.dataset.v === segCount));
+        selected = null;
+        renderDesign(); renderPicker();
+      };
+    }
+    return;
+  }
+
+  // セグメント選択
+  const i = selected.i;
+  const sides = _segSideCache || [];
+  const side = sides[i];
+  const occ = occupiedBy(i);
+
+  document.getElementById('pickerTitle').textContent = `カービング ${i + 1}`;
+
+  // サイド手動指定/切替（1・2は表示しない）
+  sideBtns.style.display = 'flex';
+  const bH = document.getElementById('sideH'), bT = document.getElementById('sideT'), bS = document.getElementById('sideS');
+  bH.className = side === 'H' ? 'onH' : '';
+  bT.className = side === 'T' ? 'onT' : '';
+  bS.className = side === 'S' ? 'onS' : '';
+  const clearHere = () => { assignments = assignments.filter(a => !(i >= a.seg && i < a.seg + a.span)); };
+  bH.onclick = () => { pushHistory(); sideOverrides[i] = 'H'; clearHere(); renderDesign(); renderPicker(); };
+  bT.onclick = () => { pushHistory(); sideOverrides[i] = 'T'; clearHere(); renderDesign(); renderPicker(); };
+  bS.onclick = () => { pushHistory(); sideOverrides[i] = 'S'; clearHere(); renderDesign(); renderPicker(); };
+
+  if (side === null) {
+    hint.textContent = 'このカービングは向きを自動判定できませんでした。ヒール/トゥ/直進を指定するとステップ候補が表示されます';
+    return;
+  }
+  if (side === 'S') {
+    document.getElementById('pickerTitle').textContent = `区間 ${i + 1} — 直進（助走）`;
+  }
+
+  if (occ && occ.seg !== i) {
+    hint.textContent = `このカービングは「${occ.name}」の一部です`;
+    const rm = document.createElement('span');
+    rm.className = 'cchip';
+    rm.textContent = `「${occ.name}」を外す`;
+    rm.onclick = () => { assignments = assignments.filter(a => a !== occ); renderDesign(); renderPicker(); };
+    chips.appendChild(rm);
+    return;
+  }
+
+  const oriHere = orientationAt(i);
+  hint.textContent = oriHere === -1
+    ? '⚡ スイッチスタンス中 — スイッチ版のステップのみ選択できます（複数カーブにまたがるステップは自動で区間を消費）'
+    : 'ここから始められるステップ（複数のカービングにまたがるステップは自動で区間を消費します）';
+
+  const carve = document.createElement('span');
+  carve.className = 'cchip' + (!occ ? ' on' : '');
+  carve.textContent = 'カービングのみ';
+  carve.onclick = () => {
+    assignments = assignments.filter(a => a.seg !== i);
+    renderDesign(); renderPicker();
+  };
+  chips.appendChild(carve);
+
+  const cands = candidatesAt(i, sides).filter(s => !occ || occ.name !== s.name);
+  if (occ) {
+    const cur = document.createElement('span');
+    cur.className = 'cchip on';
+    cur.textContent = occ.name + '（選択中・タップで外す）';
+    cur.onclick = () => { assignments = assignments.filter(a => a !== occ); renderDesign(); renderPicker(); };
+    chips.appendChild(cur);
+  }
+
+  // 部分ランダムボタン
+  if (cands.length) {
+    const dice = document.createElement('span');
+    dice.className = 'cchip dice';
+    dice.textContent = '🎲 おまかせ';
+    dice.onclick = () => {
+      // おまかせ難易度の配分を反映
+      const DIST = [[0.85,0.15,0],[0.4,0.5,0.1],[0.2,0.6,0.2]][randDiff];
+      const r = Math.random();
+      let g = r < DIST[0] ? 0 : r < DIST[0] + DIST[1] ? 1 : 2;
+      let pool = cands.filter(c => levelGroup(c) === g);
+      if (!pool.length) pool = cands;
+      placeStep(i, pool[Math.floor(Math.random() * pool.length)]);
+    };
+    chips.appendChild(dice);
+  }
+
+  cands.forEach(s => {
+    const c = document.createElement('span');
+    c.className = 'cchip';
+    const span = stepSpan(s, matchSeqAt(s, i, sides));
+    c.innerHTML = `${s.name}<span class="lv">${s.level}${span > 1 ? '・' + span + 'カーブ' : ''}${s.rep ? '↻' : ''}</span>`;
+    c.onclick = () => placeStep(i, s);
+    chips.appendChild(c);
+  });
+
+  if (!cands.length) {
+    hint.textContent = 'この位置に合うステップがありません。境界を動かすか、前後のステップを外してみてください';
+  }
+}
+
+function placeStep(segIdx, step) {
+  pushHistory();
+  const matched = matchSeqAt(step, segIdx, _segSideCache || []);
+  const span = stepSpan(step, matched);
+  assignments = assignments.filter(a => a.seg !== segIdx);
+  assignments.push({ seg: segIdx, name: step.name, span });
+  renderDesign(); renderPicker();
+}
+
+/* ============================================================
+   PLAYBACK — 動画枠を下から順に「再生」し軌道を同期
+   ============================================================ */
+function playLine() {
+  if (animating) return;
+  animating = true;
+  const svg = document.getElementById('designSvg');
+  const path = svg.querySelector('#linePath');
+  const overlays = [...svg.querySelectorAll('.step-overlay'), ...svg.querySelectorAll('.step-label')];
+  const bs = allBoundaries();
+  const totalLen = path.getTotalLength();
+
+  // 再生プラン: セグメント順に carve(0.7s) / step(2.5s placeholder動画尺)
+  const sorted = assignments.slice().sort((a,b) => a.seg - b.seg);
+  const plan = [];
+  let seg = 0;
+  while (seg < numSegments()) {
+    const a = sorted.find(x => x.seg === seg);
+    if (a) {
+      plan.push({ f0: bs[seg], f1: bs[seg + a.span], dur: 2500, boxSeg: a.seg });
+      seg += a.span;
+    } else {
+      plan.push({ f0: bs[seg], f1: bs[seg + 1], dur: 700, boxSeg: null });
+      seg += 1;
+    }
+  }
+
+  overlays.forEach(el => el.setAttribute('opacity', 0));
+  path.setAttribute('stroke-dasharray', totalLen);
+  path.setAttribute('stroke-dashoffset', totalLen);
+
+  const boxEls = {};
+  sorted.forEach((a, k) => { boxEls[a.seg] = svg.querySelector('#vbox-' + k); });
+
+  let planIdx = 0;
+  let segStart = null;
+
+  function highlightBox(segKey, on) {
+    const g = boxEls[segKey];
+    if (!g) return;
+    const rect = g.querySelector('rect');
+    rect.setAttribute('stroke', on ? '#5E8CA7' : 'rgba(62,106,133,0.18)');
+    rect.setAttribute('stroke-width', on ? 2.5 : 1);
+  }
+
+  function frame(now) {
+    if (planIdx >= plan.length) {
+      // FINISH表示
+      svg.querySelectorAll('.finish-label').forEach(el => el.setAttribute('opacity', 1));
+      path.removeAttribute('stroke-dasharray');
+      path.removeAttribute('stroke-dashoffset');
+      overlays.forEach(el => el.setAttribute('opacity', 1));
+      animating = false;
+      return;
+    }
+    const st = plan[planIdx];
+    if (segStart === null) {
+      segStart = now;
+      if (st.boxSeg !== null) highlightBox(st.boxSeg, true);
+    }
+    const p = Math.min((now - segStart) / st.dur, 1);
+    const f = st.f0 + (st.f1 - st.f0) * p;
+    path.setAttribute('stroke-dashoffset', totalLen * (1 - f));
+    // ステップ区間の通過でオーバーレイ表示
+    if (st.boxSeg !== null && p >= 1) {
+      overlays.forEach(el => {
+        if (+el.dataset.seg === st.boxSeg) el.setAttribute('opacity', el.classList.contains('step-overlay') ? 0.9 : 1);
+      });
+    }
+    if (p >= 1) {
+      if (st.boxSeg !== null) highlightBox(st.boxSeg, false);
+      planIdx++;
+      segStart = null;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+function bindSeg(id, cb) {
+  const seg = document.getElementById(id);
+  seg.querySelectorAll('button').forEach(b => {
+    b.onclick = () => {
+      seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      cb(b.dataset.v);
+    };
+  });
+}
+bindSeg('stanceSeg', v => { stance = v; sideOverrides = {}; assignments = []; renderDesign(); renderPicker(); });
+bindSeg('startSeg', v => { startSide = v; assignments = []; renderDesign(); renderPicker(); });
+bindSeg('arcSeg', v => { segCount = +v; assignments = []; sideOverrides = {}; selected = null; renderDesign(); renderPicker(); });
+let randDiff = 1; // 0=初級 1=中級 2=上級
+bindSeg('diffSeg', v => { randDiff = +v; });
+
+document.getElementById('skipAnalysis').onclick = () => {
+  analyzedPath = null;
+  boundaries = []; sideOverrides = {}; assignments = []; finishTrick = null; selected = null;
+  document.getElementById('arcSetting').style.display = 'block';
+  document.getElementById('startSetting').style.display = 'block';
+  document.getElementById('modeBadge').textContent = 'DESIGN MODE';
+  document.getElementById('sec2').style.display = 'block';
+  document.getElementById('mainGrid').classList.add('two-col');
+  renderDesign();
+  document.getElementById('sec2').scrollIntoView({ behavior: 'smooth' });
+};
+
+document.getElementById('btnReplay').onclick = () => renderDesign(true);
+document.getElementById('btnUndo').onclick = () => undo();
+
+/* ステップを全ておまかせ: 空いている区間を先頭から順にランダムで埋める
+   （サイド整合・スイッチ解禁ルールを守る。最初の区間はプレカーブ優先）*/
+document.getElementById('btnRandomAll').onclick = () => {
+  const sides = _segSideCache || [];
+  if (sides.some(s => s === null)) {
+    alert('向きを判定できなかったカービング（?マーク）があります。先にタップしてヒール/トゥ/直進を指定してください。');
+    return;
+  }
+  pushHistory();
+  assignments = [];
+  let seg = 0;
+  const n = numSegments();
+  // 難易度別の配分 [初級系, 中級系, 上級系]
+  const DIST = [
+    [0.85, 0.15, 0.00],  // 初級: 初級メイン＋中級1〜2割
+    [0.40, 0.50, 0.10],  // 中級
+    [0.20, 0.60, 0.20],  // 上級
+  ][randDiff];
+
+  function pickByDifficulty(cands) {
+    // 配分に従い難易度グループを抽選 → そのグループの候補から選ぶ
+    // グループに候補がなければ配分順にフォールバック
+    const r = Math.random();
+    let target = r < DIST[0] ? 0 : r < DIST[0] + DIST[1] ? 1 : 2;
+    for (let tryG of [target, (target+1)%3, (target+2)%3]) {
+      if (DIST[tryG] === 0 && tryG !== target) continue; // 配分0のグループへはフォールバックしない
+      const pool = cands.filter(c => levelGroup(c) === tryG);
+      if (pool.length) return pool[Math.floor(Math.random() * pool.length)];
+    }
+    return cands[Math.floor(Math.random() * cands.length)];
+  }
+
+  while (seg < n) {
+    // 最初の区間はプレカーブ（カービングのみ）を優先
+    // 最初の2つのカービングは9割の確率でカービングのみ（プレカーブ/助走として空ける）
+    if (seg < 2 && Math.random() < 0.9) { seg++; continue; }
+    const cands = candidatesAt(seg, sides);
+    if (cands.length && Math.random() < 0.9) {
+      const pick = pickByDifficulty(cands);
+      const span = stepSpan(pick, matchSeqAt(pick, seg, sides));
+      assignments.push({ seg, name: pick.name, span });
+      seg += span;
+    } else {
+      seg++;
+    }
+  }
+  if (!finishTrick) finishTrick = TRICKS[Math.floor(Math.random() * TRICKS.length)].name;
+  selected = null;
+  renderDesign(true); renderPicker();
+};
+document.getElementById('btnClear').onclick = () => {
+  pushHistory();
+  assignments = []; finishTrick = null; sideOverrides = {}; selected = null;
+  renderDesign(); renderPicker();
+};
+
+/* ============================================================
+   SEQ EDITOR
+   ============================================================ */
+function renderSideEditor() {
+  const el = document.getElementById('sideEditor');
+  el.innerHTML = '';
+  RAW_STEPS.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'se-row';
+    row.innerHTML = `<span class="se-name">${s.name} <span style="color:var(--ink-3);font-size:10.5px;">${s.level}${s.rep ? '・繰返し可' : ''}</span></span>`;
+    const input = document.createElement('input');
+    input.className = 'se-seq';
+    input.value = s.seq;
+    input.onchange = () => {
+      const v = input.value.trim();
+      if (/^([012*]+(\|[012*]+)*)$/.test(v)) {
+        s.seq = v;
+        ALL_STEPS = buildAllSteps();
+        assignments = [];
+        renderDesign(); renderPicker();
+      } else {
+        input.value = s.seq;
+      }
+    };
+    row.appendChild(input);
+    el.appendChild(row);
+  });
+}
+
+/* ============================================================
+   VIDEO ANALYSIS — MediaPipe Pose（ランドマークをキャッシュして再生可能に）
+   ============================================================ */
+const videoEl = document.createElement('video');
+videoEl.muted = true; videoEl.playsInline = true;
+let videoDuration = 0;
+let poseLandmarker = null;
+
+const uploadZone = document.getElementById('uploadZone');
+const videoInput = document.getElementById('videoInput');
+uploadZone.onclick = () => videoInput.click();
+document.getElementById('btnReAnalyze').onclick = () => {
+  // 状態を完全リセットしてから再選択（IMAGEモードなので2本目以降も問題なし）
+  videoInput.value = '';
+  seedPoint = null;
+  landmarkCache = [];
+  document.getElementById('replayRow').style.display = 'none';
+  document.getElementById('sec1').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => videoInput.click(), 300);
+};
+
+let seedPoint = null; // 最初のフレームでユーザーが指定した人物位置（正規化座標）
+
+videoInput.onchange = () => {
+  const file = videoInput.files[0];
+  if (!file) return;
+  seedPoint = null;
+  landmarkCache = [];
+  videoEl.src = URL.createObjectURL(file);
+  videoEl.onloadedmetadata = async () => {
+    videoDuration = videoEl.duration;
+    document.getElementById('modelLoading').style.display = 'block';
+    try {
+      await loadPoseModel();
+      document.getElementById('modelLoading').style.display = 'none';
+      showSeedFrame();
+    } catch (err) {
+      document.getElementById('modelStatus').textContent =
+        'AIモデルの読み込みに失敗しました。ネット接続を確認してください。(' + err.message + ')';
+    }
+  };
+};
+
+/* 最初のフレームで人物をクリックしてもらい、追跡の起点にする */
+async function showSeedFrame() {
+  document.getElementById('analysisArea').style.display = 'block';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('replayRow').style.display = 'none';
+  const ov = document.getElementById('overlayCanvas');
+  const OV_W = 640;
+  ov.width = OV_W;
+  ov.height = Math.round(videoEl.videoHeight * OV_W / videoEl.videoWidth);
+  const octx = ov.getContext('2d');
+  await seekTo(0.05);
+  octx.drawImage(videoEl, 0, 0, ov.width, ov.height);
+  octx.fillStyle = 'rgba(0,0,0,0.55)';
+  octx.fillRect(0, 0, ov.width, 34);
+  octx.font = 'bold 15px sans-serif';
+  octx.fillStyle = '#ffffff';
+  octx.fillText('👆 スケーター（人物）をタップしてください', 12, 23);
+  document.getElementById('progressText').textContent = '最初のフレームで人物の位置を指定すると、追跡精度が上がります';
+  document.getElementById('progressBar').style.width = '0%';
+
+  ov.style.cursor = 'crosshair';
+  ov.onclick = (e) => {
+    const rect = ov.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width;
+    const ny = (e.clientY - rect.top) / rect.height;
+    seedPoint = { x: nx, y: ny };
+    ov.onclick = null;
+    ov.style.cursor = 'default';
+    analyzeVideo();
+  };
+}
+
+async function loadPoseModel() {
+  if (poseLandmarker) return;
+  document.getElementById('modelStatus').textContent = 'AIモデルをダウンロード中...';
+  const visionModule = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14');
+  const { PoseLandmarker, FilesetResolver } = visionModule;
+  const vision = await FilesetResolver.forVisionTasks(
+    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+  );
+  poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
+      delegate: 'GPU'
+    },
+    runningMode: 'IMAGE',  // フレーム独立検出（2本目以降の動画・クロップ検出に対応）
+    numPoses: 4,           // 複数候補を取得し、前回位置に最も近い人物を選別する
+    minPoseDetectionConfidence: 0.25,
+    minPosePresenceConfidence: 0.25
+  });
+}
+
+function seekTo(t) {
+  return new Promise(res => {
+    videoEl.onseeked = () => res();
+    videoEl.currentTime = t;
+  });
+}
+
+const BONES = [[11,12],[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28],[11,13],[12,14],[13,15],[14,16]];
+
+function drawOverlayFrame(octx, ov, lmPoints, trail, detected) {
+  octx.drawImage(videoEl, 0, 0, ov.width, ov.height);
+  if (lmPoints) {
+    octx.strokeStyle = 'rgba(94,140,167,0.95)';
+    octx.lineWidth = 2;
+    for (const [a, b] of BONES) {
+      const pa = lmPoints[a], pb = lmPoints[b];
+      if (pa && pb) {
+        octx.beginPath();
+        octx.moveTo(pa.x * ov.width, pa.y * ov.height);
+        octx.lineTo(pb.x * ov.width, pb.y * ov.height);
+        octx.stroke();
+      }
+    }
+    const ank = lmPoints.ankle;
+    if (ank) {
+      octx.fillStyle = '#E0663C';
+      octx.beginPath();
+      octx.arc(ank.x * ov.width, ank.y * ov.height, 6, 0, Math.PI*2);
+      octx.fill();
+    }
+  }
+  if (trail.length > 1) {
+    octx.strokeStyle = 'rgba(224,102,60,0.9)';
+    octx.lineWidth = 3;
+    octx.beginPath();
+    octx.moveTo(trail[0].x * ov.width, trail[0].y * ov.height);
+    for (let j = 1; j < trail.length; j++) {
+      if (trail[j].gap) octx.moveTo(trail[j].x * ov.width, trail[j].y * ov.height); // 不連続点で線を切る
+      else octx.lineTo(trail[j].x * ov.width, trail[j].y * ov.height);
+    }
+    octx.stroke();
+  }
+  octx.font = '12px sans-serif';
+  octx.fillStyle = detected ? '#5E8CA7' : '#C05840';
+  octx.fillText(detected ? '● 検出中' : '○ 未検出', 10, 20);
+}
+
+async function analyzeVideo() {
+  document.getElementById('analysisArea').style.display = 'block';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('replayRow').style.display = 'none';
+
+  const ov = document.getElementById('overlayCanvas');
+  const OV_W = 640;
+  ov.width = OV_W;
+  ov.height = Math.round(videoEl.videoHeight * OV_W / videoEl.videoWidth);
+  const octx = ov.getContext('2d');
+
+  const VW = videoEl.videoWidth, VH = videoEl.videoHeight;
+  // 追跡ウィンドウ: 前回の人物位置（初回はシードクリック）周辺をクロップして検出
+  const cropCv = document.createElement('canvas');
+  const cctx = cropCv.getContext('2d');
+
+  const SAMPLE_FPS = 16; // 頂点タイミングの精度向上のため高密度サンプリング
+  const totalSamples = Math.floor(videoDuration * SAMPLE_FPS);
+  const track = [];
+  const trail = [];
+  landmarkCache = [];
+  let lastPos = seedPoint ? { ...seedPoint } : { x: 0.5, y: 0.55 };
+  let lostCount = 0;
+  let lastAnkle = null;      // 足首位置の連続性チェック用
+  let lastGoodBodyH = null;  // 上半身フレームアウト中に固定する身長推定値
+  let locked = false;        // 人物ロックオン済みか（ロック前は記録しない）
+  let lockStreak = 0;        // 連続検出数（2連続でロック確定）
+
+  function detectCandidates(cx, cy, scale) {
+    // scale: クロップの大きさ（フル幅比）。全候補をフル座標で返す
+    const cw = Math.min(VW, VW * scale);
+    const ch = Math.min(VH, VH * Math.min(1, scale * 1.6));
+    const x0 = Math.max(0, Math.min(VW - cw, cx * VW - cw / 2));
+    const y0 = Math.max(0, Math.min(VH - ch, cy * VH - ch / 2));
+    // 小さいクロップは拡大して検出（実質ズームイン → 広角の小さい人物に効く）
+    const up = Math.max(1, Math.min(3, 520 / ch));
+    cropCv.width = Math.round(cw * up);
+    cropCv.height = Math.round(ch * up);
+    cctx.drawImage(videoEl, x0, y0, cw, ch, 0, 0, cropCv.width, cropCv.height);
+    const result = poseLandmarker.detect(cropCv);
+    if (!result.landmarks || !result.landmarks.length) return [];
+    const toFull = p => ({ x: (x0 + p.x * cw) / VW, y: (y0 + p.y * ch) / VH, visibility: p.visibility });
+    return result.landmarks.map(lm => lm.map(toFull));
+  }
+
+  /* 候補群から「前回位置に最も近く、サイズが連続的な人物」を選ぶ
+     自転車など別被写体への乗り移りを防ぐゲート付き */
+  const recentBodyH = [];
+  function pickBest(candidates, gate) {
+    let best = null, bestD = Infinity;
+    const visTh = locked ? 0.25 : 0.45; // ロック前は高い可視度を要求（幻ポーズ対策）
+    for (const lm of candidates) {
+      const la = lm[27], ra = lm[28], nose = lm[0];
+      const vis = ((la.visibility||0) + (ra.visibility||0)) / 2;
+      if (vis < visTh) continue;
+      const hip = { x: (lm[23].x + lm[24].x) / 2, y: (lm[23].y + lm[24].y) / 2 };
+      const d = Math.hypot(hip.x - lastPos.x, hip.y - lastPos.y);
+      if (d > gate) continue; // 前回位置から離れすぎ → 別被写体とみなす
+      const bodyH = Math.abs(((la.y + ra.y) / 2) - nose.y);
+      if (recentBodyH.length >= 4) {
+        const med = recentBodyH.slice(-6).sort((a,b)=>a-b)[Math.floor(Math.min(6, recentBodyH.length)/2)];
+        if (bodyH > med * 2.8 || bodyH < med * 0.35) continue; // サイズ急変 → 別被写体
+      }
+      if (d < bestD) { bestD = d; best = lm; }
+    }
+    return best;
+  }
+
+  for (let i = 0; i < totalSamples; i++) {
+    const t = i / SAMPLE_FPS;
+    await seekTo(t);
+
+    // 段階的に検出: 追跡ウィンドウを広げつつ、常に「前回位置に最も近い人物」を選別
+    // 見失いが続くほど距離ゲートを緩める（ただし中央リセットはしない＝別被写体に飛ばない）
+    let lm;
+    if (!locked) {
+      // ロックオンフェーズ: シードクリック位置の近傍のみをタイトに探索
+      // 背景の幻ポーズを避けるため、距離ゲート厳しめ・小さいクロップから段階的に
+      for (const sc of [0.14, 0.22, 0.34, 0.5]) {
+        lm = pickBest(detectCandidates(lastPos.x, lastPos.y, sc), 0.1);
+        if (lm) break;
+      }
+    } else {
+      // 追跡フェーズ: 見失いが続くほど距離ゲートを緩め、長期見失い時は足首ジャンプ制約も解除
+      const gate = lostCount > 10 ? 1.0 : 0.14 + Math.min(lostCount, 8) * 0.05;
+      const baseScale = Math.max(0.18, Math.min(1.0, (lastGoodBodyH || 0.3) * 1.8));
+      lm = pickBest(detectCandidates(lastPos.x, lastPos.y, baseScale), gate);
+      if (!lm) lm = pickBest(detectCandidates(lastPos.x, lastPos.y, Math.min(1.0, baseScale * 1.7)), gate);
+      if (!lm) lm = pickBest(detectCandidates(lastPos.x, lastPos.y, 1.0), gate);
+    }
+
+    let lmPoints = null;
+    let detected = false;
+
+    if (lm) {
+      const la = lm[27], ra = lm[28], nose = lm[0];
+      const ls = lm[11], rs = lm[12];
+      const ankleX = (la.x + ra.x) / 2;
+      const ankleY = (la.y + ra.y) / 2;
+
+      // 足首の急激なジャンプを棄却（フレームアウト時の暴れ対策）
+      const ankleJumpOK = !lastAnkle || lostCount > 10 ||
+        Math.hypot(ankleX - lastAnkle.x, ankleY - lastAnkle.y) < 0.13 + Math.min(lostCount, 5) * 0.04;
+
+      if (ankleJumpOK) {
+        detected = true;
+        const wasLost = lostCount > 10; // 長期見失いからの復帰＝軌道が飛ぶ可能性あり
+        lostCount = 0;
+        lastAnkle = { x: ankleX, y: ankleY };
+        lockStreak++;
+        if (!locked && lockStreak >= 2) locked = true; // 2連続検出でロック確定
+
+        // 上半身（鼻・肩）が見えている時だけ身長推定を更新。
+        // フレームアウト中は最後の正常値で固定（遠近補正の暴れを防ぐ）
+        const upperVis = Math.max(nose.visibility||0, ((ls.visibility||0)+(rs.visibility||0))/2);
+        let bodyH;
+        if (upperVis > 0.35 && nose.y < ankleY) {
+          bodyH = Math.abs(ankleY - nose.y);
+          lastGoodBodyH = bodyH;
+          recentBodyH.push(bodyH);
+        } else {
+          bodyH = lastGoodBodyH || 0.4;
+        }
+
+        lastPos = { x: (lm[23].x + lm[24].x) / 2, y: (lm[23].y + lm[24].y) / 2 }; // 腰で追跡
+        // 長期見失いからの復帰フレームは gap=true とし、後段で軌道を連結しない
+        track.push({ t, ankleX, bodyH, gap: wasLost });
+        trail.push({ x: ankleX, y: ankleY, gap: wasLost });
+        lmPoints = { ankle: { x: ankleX, y: ankleY } };
+        BONES.flat().forEach(idx => {
+          if ((lm[idx].visibility||0) > 0.25) lmPoints[idx] = { x: lm[idx].x, y: lm[idx].y };
+        });
+      } else {
+        lostCount++;
+        lockStreak = 0;
+      }
+    } else {
+      lostCount++;
+      lockStreak = 0;
+      if (!locked) lastAnkle = null; // ロック前は連続性をリセットして探し続ける
+    }
+
+    landmarkCache.push({ t, lmPoints, trailLen: trail.length, detected });
+    drawOverlayFrame(octx, ov, lmPoints, trail, detected);
+
+    const pct = Math.round((i+1) / totalSamples * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressText').textContent =
+      `AI解析中... ${pct}%（姿勢検出 ${track.length}/${i+1}フレーム）`;
+  }
+
+  landmarkCache._trail = trail;
+
+  if (track.length < 8) {
+    document.getElementById('progressText').textContent =
+      '人物を検出できたフレームが少なすぎます。全身が映る正面構図で撮り直してみてください。';
+    return;
+  }
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('replayRow').style.display = 'flex';
+  processAnalysis(track);
+}
+
+/* 解析結果の再生（キャッシュから再描画・再推論なし） */
+document.getElementById('btnReplayAnalysis').onclick = async () => {
+  if (!landmarkCache.length) return;
+  const ov = document.getElementById('overlayCanvas');
+  const octx = ov.getContext('2d');
+  const trail = landmarkCache._trail || [];
+  const btn = document.getElementById('btnReplayAnalysis');
+  btn.disabled = true;
+  for (const fr of landmarkCache) {
+    await seekTo(fr.t);
+    drawOverlayFrame(octx, ov, fr.lmPoints, trail.slice(0, fr.trailLen), fr.detected);
+    await new Promise(r => setTimeout(r, 60));
+  }
+  btn.disabled = false;
+};
+
+function processAnalysis(track) {
+  // gap（長期見失いからの復帰＝軌道が飛んだ点）で区切り、最長の連続区間だけを採用する。
+  // これにより一瞬の誤検出で軌道が飛んだ乱れを除去できる。
+  {
+    const runs = [];
+    let cur = [];
+    track.forEach(p => {
+      if (p.gap && cur.length) { runs.push(cur); cur = []; }
+      cur.push(p);
+    });
+    if (cur.length) runs.push(cur);
+    if (runs.length > 1) {
+      runs.sort((a, b) => b.length - a.length);
+      track = runs[0];
+    }
+  }
+
+  const maxBodyH = Math.max(...track.map(p => p.bodyH));
+  const bh = track.map(p => p.bodyH);
+  const smBH = bh.map((_, i) => {
+    const s = bh.slice(Math.max(0, i-5), i+6);
+    return s.reduce((a,b)=>a+b,0)/s.length;
+  });
+
+  let pts = track.map((p, i) => {
+    const corr = Math.min(maxBodyH / smBH[i], 3.5);
+    // カメラ視点→スケーター視点: 左右をミラー反転
+    return { t: p.t, x: -(p.ankleX - 0.5) * corr, corr };
+  });
+
+  // 遠近補正はノイズも増幅する（遠いほど最大3.5倍）ため、
+  // corrに比例した適応スムージングをかけて助走期間（人物が小さい時期）の荒ぶりを抑える
+  pts = pts.map((p, i) => {
+    const win = Math.round(p.corr);          // corr 1→窓1(3点), corr 3.5→窓4(9点)
+    if (win <= 1) return { t: p.t, x: p.x };
+    const s = pts.slice(Math.max(0, i - win), i + win + 1);
+    return { t: p.t, x: s.reduce((a,q)=>a+q.x,0)/s.length };
+  });
+
+  // === 前進距離ベースのY座標再構築 ===
+  // カメラからは頂点付近で横移動が止まって見えるが、実際は前進し続けている。
+  // 一定速度 v を仮定し dy = sqrt((v·dt)^2 - dx^2) で前進量を復元 → 弧が緩やかな半円に近づく
+  {
+    const dxs = [];
+    for (let i = 1; i < pts.length; i++) dxs.push(Math.abs(pts[i].x - pts[i-1].x));
+    const sortedDx = dxs.slice().sort((a,b)=>a-b);
+    const dxMax = sortedDx[Math.floor(sortedDx.length * 0.95)] || 0.02;
+    // 前進速度vを横振れの最大値より大きめに設定 → 各カービングが半円に近づく
+    // (v が dxMax に近いほど頂点で前進が止まり弧が尖る。v を大きくすると半円〜横長の緩い弧になる)
+    const v = dxMax * 1.9;
+    let y = 0;
+    pts[0].fy = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const dx = pts[i].x - pts[i-1].x;
+      // 前進量: 常に一定速度で前進していると仮定（横に振れても前進は止まらない）
+      // dyの下限を高く保つことで、頂点付近でも前に進み続け弧が半円状になる
+      const dy = Math.sqrt(Math.max(v*v - dx*dx, v*v*0.5));
+      y += dy;
+      pts[i].fy = y;
+    }
+    const yMax = y || 1;
+    pts.forEach(p => p.fy = p.fy / yMax); // 0-1に正規化した前進距離
+  }
+
+  // 検出用: ごく軽いスムージング（前後1フレーム=3点平均）→ 放物線補間で正確な頂点位置を出す
+  // 曲線自体はこの後、丸印(頂点)を制御点として構築するため、ここでの値は
+  // 「頂点検出の精度」と「手動追加点のx参照(密データ)」のためだけに使う
+  const w1 = 1;
+  const sm1 = pts.map((p, i) => {
+    const s = pts.slice(Math.max(0, i-w1), i+w1+1);
+    return { t: p.t, x: s.reduce((a,q)=>a+q.x,0)/s.length, fy: p.fy };
+  });
+
+  // 頂点（apex）検出 — プロミネンス（顕著性）ベースで高精度化
+  // 1) 全ての局所極値を検出 2) 前後の反対極値との高低差で評価 3) 小さな揺れを除去 4) 山谷の交互性を保証
+  const xRange = Math.max(...sm1.map(p=>p.x)) - Math.min(...sm1.map(p=>p.x));
+  const PROM_TH = Math.max(xRange * 0.02, 0.008); // 全振幅の2%未満の揺れのみノイズ扱い（生データから細部を拾う）
+
+  // 放物線フィッティングでサブフレーム精度の頂点位置を推定
+  // （離散サンプルの都合で実際のピークが2フレームの間にある場合、より正確な位置・時刻・xを復元する）
+  function refineExtremum(i) {
+    const y0 = sm1[i-1].x, y1 = sm1[i].x, y2 = sm1[i+1].x;
+    const denom = y0 - 2*y1 + y2;
+    let off = Math.abs(denom) > 1e-9 ? 0.5 * (y0 - y2) / denom : 0;
+    off = Math.max(-0.5, Math.min(0.5, off));
+    const t = off >= 0
+      ? sm1[i].t + off * (sm1[i+1].t - sm1[i].t)
+      : sm1[i].t + off * (sm1[i].t - sm1[i-1].t);
+    const fy = off >= 0
+      ? sm1[i].fy + off * (sm1[i+1].fy - sm1[i].fy)
+      : sm1[i].fy + off * (sm1[i].fy - sm1[i-1].fy);
+    const x = y1 - 0.25 * (y0 - y2) * off;
+    return { t, fy, x };
+  }
+
+  let extrema = [];
+  for (let i = 1; i < sm1.length - 1; i++) {
+    if (sm1[i].x >= sm1[i-1].x && sm1[i].x > sm1[i+1].x) {
+      extrema.push({ ...refineExtremum(i), idx: i, type: 'max' });
+    } else if (sm1[i].x <= sm1[i-1].x && sm1[i].x < sm1[i+1].x) {
+      extrema.push({ ...refineExtremum(i), idx: i, type: 'min' });
+    }
+  }
+
+  // プロミネンス計算: 隣接する反対タイプ極値との差の小さい方
+  function prominence(k) {
+    const e = extrema[k];
+    let left = null, right = null;
+    for (let a = k - 1; a >= 0; a--) if (extrema[a].type !== e.type) { left = extrema[a]; break; }
+    for (let b = k + 1; b < extrema.length; b++) if (extrema[b].type !== e.type) { right = extrema[b]; break; }
+    const dl = left ? Math.abs(e.x - left.x) : Infinity;
+    const dr = right ? Math.abs(e.x - right.x) : Infinity;
+    return Math.min(dl, dr) === Infinity ? Math.max(dl === Infinity ? 0 : dl, dr === Infinity ? 0 : dr) : Math.min(dl, dr);
+  }
+
+  // 弱い極値を反復的に除去（除去後に隣接同タイプをマージ）
+  let changed = true;
+  while (changed && extrema.length > 2) {
+    changed = false;
+    let weakest = -1, weakestProm = Infinity;
+    for (let k = 0; k < extrema.length; k++) {
+      const pr = prominence(k);
+      if (pr < PROM_TH && pr < weakestProm) { weakestProm = pr; weakest = k; }
+    }
+    if (weakest >= 0) {
+      extrema.splice(weakest, 1);
+      // 同タイプが隣接したら、より極端な方を残す
+      for (let k = 0; k < extrema.length - 1; k++) {
+        if (extrema[k].type === extrema[k+1].type) {
+          const keepFirst = extrema[k].type === 'max'
+            ? extrema[k].x >= extrema[k+1].x
+            : extrema[k].x <= extrema[k+1].x;
+          extrema.splice(keepFirst ? k+1 : k, 1);
+          break;
+        }
+      }
+      changed = true;
+    }
+  }
+
+  // 時間間隔が近すぎるものを除去（0.18秒未満のみ統合）— サンプリング間隔(0.125s)に近いレベルまで許容
+  const merged = [];
+  extrema.forEach(e => {
+    if (!merged.length || e.t - merged[merged.length-1].t > 0.18) merged.push(e);
+  });
+
+  // 頂点位置は refineExtremum によるサブフレーム補間済みの値をそのまま採用
+  const turns = merged.map(e => ({ t: e.t, x: e.x, fy: e.fy }));
+
+  if (turns.length < 2) {
+    document.getElementById('progressWrap').style.display = 'block';
+    document.getElementById('progressText').textContent =
+      'カービングの折り返しが検出できませんでした。左右にしっかり振るカービングで撮り直してみてください。';
+    return;
+  }
+
+  analyzedPath = { dense: sm1, turns };
+
+  // 丸印（境界）= 検知したカービングの頂点に配置（放物線補間済みfyをそのまま使用）
+  boundaries = [];
+  turns.forEach(tp => {
+    if (tp.fy > 0.02 && tp.fy < 0.98) boundaries.push(tp.fy);
+  });
+
+  sideOverrides = {}; assignments = []; finishTrick = null; selected = null;
+
+  document.getElementById('arcSetting').style.display = 'none';
+  document.getElementById('startSetting').style.display = 'none';
+  document.getElementById('modeBadge').textContent = 'YOUR CARVING';
+  document.getElementById('sec2').style.display = 'block';
+  document.getElementById('mainGrid').classList.add('two-col');
+  renderDesign();
+  document.getElementById('sec2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+renderSideEditor();
+</script>
+</body>
+</html>
