@@ -247,7 +247,7 @@
   <div class="section" id="secSteps">
     <div class="step-num">Step 2 — My Steps</div>
     <h2>できるステップを選ぶ</h2>
-    <p class="note">選んだステップだけが候補に表示されます。<br>新しいステップを習得したらここで更新してください（自動保存されます）。</p>
+    <p class="note">選んだステップだけが候補に表示されます。<br>新しいステップを習得したらここで更新してください（自動保存されます）。<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ 各ステップの詳細（ロンスケwiki）</a></p>
     <div class="card">
       <div class="card-head">
         <span class="badge orange" id="myStepsCount"></span>
@@ -941,45 +941,49 @@ function renderDesign(animate = false) {
     return out;
   }
 
-  // ステップ区間表示: 軌道の脇のブラケット線。ステップが切り替わるごとに寒色⇄暖色を交互に切り替え、
-  // どこで次のステップに移るかが色の変化で分かるようにする。
+  // ステップ区間表示: 軌道の脇のブラケット線。ステップが切り替わるごとに寒色⇄暖色を交互に切り替え。
+  // ラベルは軌道と重ならないよう、必ず左端の余白に固定して引き出し線で結ぶ。
   const BRACKET_WARM = '#E0663C', BRACKET_COOL = '#3E6A85';
   let overlays = '';
   const sortedAssign = assignments.slice().sort((a,b)=>a.seg-b.seg);
+  // ラベルのY位置が近接して重ならないよう、使用済みY帯を記録
+  const usedLabelY = [];
   sortedAssign.forEach((a, ai) => {
     const ACCENT = ai % 2 === 0 ? BRACKET_WARM : BRACKET_COOL;
     const ptsArr = sampleRange(a.seg, a.seg + a.span, Math.max(20, a.span * 14));
     const mid = ptsArr[Math.floor(ptsArr.length / 2)];
-    // ステップが占める側（軌道が主に左右どちらに膨らむか）を判定してブラケットを外側に置く
+    // ブラケットは軌道の膨らむ外側に置く
     const avgX = ptsArr.reduce((s,p)=>s+p.x,0) / ptsArr.length;
     let dir = avgX >= PATH_CX ? 1 : -1;
     if (avgX < 150) dir = 1;
     if (avgX > VIDEO_X - 160) dir = -1;
-    const OFF = 16; // 軌道からブラケットまでの距離
-    // 軌道に沿ってオフセットした括弧線（各点の法線方向にずらす）
+    const OFF = 14;
     const bpts = ptsArr.map((p, k) => {
       const prev = ptsArr[Math.max(0, k-1)], next = ptsArr[Math.min(ptsArr.length-1, k+1)];
       const tx = next.x - prev.x, ty = next.y - prev.y;
       const len = Math.hypot(tx, ty) || 1;
-      // 法線 (ty, -tx) を正規化して dir 側へ
       const nx = (ty / len) * dir, ny = (-tx / len) * dir;
       return { x: p.x + nx * OFF, y: p.y + ny * OFF };
     });
     const p0 = bpts[0], pEnd = bpts[bpts.length - 1];
-    // 端の「かぎ」（軌道側へ折れる短い線）
     const tick0 = ptsArr[0], tickE = ptsArr[ptsArr.length - 1];
-    overlays += `<polyline points="${bpts.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="${ACCENT}" stroke-width="1.8" opacity="0.65" class="step-overlay" data-seg="${a.seg}"/>
-      <line x1="${p0.x}" y1="${p0.y}" x2="${tick0.x}" y2="${tick0.y}" stroke="${ACCENT}" stroke-width="1.8" opacity="0.65"/>
-      <line x1="${pEnd.x}" y1="${pEnd.y}" x2="${tickE.x}" y2="${tickE.y}" stroke="${ACCENT}" stroke-width="1.8" opacity="0.65"/>`;
-    // ラベル: ブラケットのさらに外側に離し、白いハロー(縁取り)で軌道と被っても読めるようにする
+    overlays += `<polyline points="${bpts.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="${ACCENT}" stroke-width="1.8" opacity="0.7" class="step-overlay" data-seg="${a.seg}"/>
+      <line x1="${p0.x}" y1="${p0.y}" x2="${tick0.x}" y2="${tick0.y}" stroke="${ACCENT}" stroke-width="1.8" opacity="0.7"/>
+      <line x1="${pEnd.x}" y1="${pEnd.y}" x2="${tickE.x}" y2="${tickE.y}" stroke="${ACCENT}" stroke-width="1.8" opacity="0.7"/>`;
+
+    // ラベルは左端の余白に固定。区間中点のY付近に置くが、近接ラベルは縦にずらして重なり回避
+    let labelY = mid.y;
+    while (usedLabelY.some(y => Math.abs(y - labelY) < 20)) labelY -= 20;
+    usedLabelY.push(labelY);
+    const LABEL_X = 8;
+    // 引き出し線: ラベル → 区間中点のブラケット
     const bmid = bpts[Math.floor(bpts.length / 2)];
-    const lx = Math.max(14, Math.min(VIDEO_X - 14, bmid.x + dir * 22));
-    const anchor = dir > 0 ? 'start' : 'end';
-    overlays += `<g class="step-label" data-seg="${a.seg}">
-      <text x="${lx}" y="${bmid.y + 4}" font-size="11.5" font-weight="700" fill="${ACCENT}"
-        stroke="rgba(255,255,255,0.92)" stroke-width="4" paint-order="stroke" stroke-linejoin="round"
-        text-anchor="${anchor}" font-family="sans-serif" pointer-events="none">${a.name}</text>
-    </g>`;
+    overlays += `<polyline points="${LABEL_X + 4},${labelY} ${bmid.x - 4},${labelY} ${bmid.x},${bmid.y}" fill="none" stroke="${ACCENT}" stroke-width="1" opacity="0.4" stroke-dasharray="2 2"/>
+      <g class="step-label" data-seg="${a.seg}">
+        <text x="${LABEL_X}" y="${labelY + 4}" font-size="11.5" font-weight="700" fill="${ACCENT}"
+          stroke="rgba(255,255,255,0.92)" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round"
+          text-anchor="start" font-family="sans-serif" pointer-events="none">${a.name}</text>
+      </g>`;
   });
   svg.querySelector('#stepOverlays').innerHTML = overlays;
 
