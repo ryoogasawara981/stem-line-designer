@@ -2,8 +2,27 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>STEM — Line Designer</title>
+
+<!-- PWA: ホーム画面アプリ化 -->
+<meta name="theme-color" content="#E6EDF2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="STEM">
+<meta name="description" content="あなたのカービングから、あなただけのラインを作る。ロングボードダンスのライン設計ツール。">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+  // Service Worker 登録（オフライン起動＆アプリ判定用）
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
 <style>
   :root {
     --warm: #E0663C; --warm-deep: #B84E28; --warm-soft: #F2A488;
@@ -203,6 +222,12 @@
 </head>
 <body>
 <div class="wrap">
+
+  <div id="pwaBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:16px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);font-size:12.5px;color:var(--ink-2);align-items:center;gap:10px;">
+    <span id="pwaBannerText" style="flex:1;"></span>
+    <button id="pwaInstallBtn" class="btn primary" style="padding:8px 16px;font-size:12px;display:none;">インストール</button>
+    <button id="pwaBannerClose" style="border:none;background:none;color:var(--ink-3);cursor:pointer;font-size:16px;padding:0 4px;">×</button>
+  </div>
 
   <header>
     <div class="brand"><h1>STEM</h1><span>LINE DESIGNER</span></div>
@@ -2163,6 +2188,46 @@ function processAnalysis(track) {
 renderSideEditor();
 renderMySteps();
 renderSavedLines();
+
+/* ============================================================
+   PWA インストール案内
+   ============================================================ */
+(function initPwaBanner() {
+  const banner = document.getElementById('pwaBanner');
+  const text = document.getElementById('pwaBannerText');
+  const installBtn = document.getElementById('pwaInstallBtn');
+  const closeBtn = document.getElementById('pwaBannerClose');
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isStandalone) return; // すでにアプリとして起動中なら出さない
+  if (stGet('stem_pwa_dismissed')) return;
+
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  let deferredPrompt = null;
+
+  closeBtn.onclick = () => { banner.style.display = 'none'; stSet('stem_pwa_dismissed', true); };
+
+  if (isIOS) {
+    // iOSはbeforeinstallpromptが無いので手順を案内
+    text.innerHTML = '📲 ホーム画面に追加してアプリのように使えます：共有ボタン <b>􀈂</b> →「ホーム画面に追加」';
+    banner.style.display = 'flex';
+  } else {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      text.textContent = '📲 このツールをアプリとしてインストールできます';
+      installBtn.style.display = 'inline-block';
+      banner.style.display = 'flex';
+    });
+    installBtn.onclick = async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      banner.style.display = 'none';
+    };
+  }
+})();
 </script>
 </body>
 </html>
