@@ -43,7 +43,8 @@
   .tagline { font-size: 13px; color: var(--ink-2); margin-top: 6px; letter-spacing: .04em; }
 
   .main-grid { display: grid; gap: 24px; }
-  .main-grid:not(.two-col) .section { max-width: 720px; margin-left: auto; margin-right: auto; width: 100%; }
+  .col-left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .main-grid:not(.two-col) .section, .main-grid:not(.two-col) .col-left { max-width: 720px; margin-left: auto; margin-right: auto; width: 100%; }
   .main-grid.two-col { grid-template-columns: 0.92fr 1.08fr; align-items: start; }
   @media (max-width: 980px) { .main-grid.two-col { grid-template-columns: 1fr; } }
 
@@ -181,8 +182,8 @@
     .settings-row { gap: 8px; }
     .setting { min-width: 100px; }
     .seg button { padding: 8px 2px; font-size: 11.5px; }
-    .btn { padding: 12px 18px; font-size: 13px; flex: 1; text-align: center; }
-    .gen-row { gap: 8px; }
+    .gen-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn { padding: 13px 8px; font-size: 12.5px; text-align: center; white-space: nowrap; }
     .choice-chips { max-height: 200px; }
     .cchip { padding: 6px 12px; }
     .picker { padding: 12px; }
@@ -209,6 +210,7 @@
   </header>
 
   <div class="main-grid" id="mainGrid">
+  <div class="col-left">
   <!-- ① カービング検知 -->
   <div class="section" id="sec1">
     <div class="step-num">Step 1 — Carving</div>
@@ -241,9 +243,27 @@
     </div>
   </div>
 
-  <!-- ② ラインデザイン -->
+  <!-- ②' できるステップの選択（フィルタ） -->
+  <div class="section" id="secSteps">
+    <div class="step-num">Step 2 — My Steps</div>
+    <h2>できるステップを選ぶ</h2>
+    <p class="note">選んだステップだけが候補に表示されます。<br>新しいステップを習得したらここで更新してください（自動保存されます）。</p>
+    <div class="card">
+      <div class="card-head">
+        <span class="badge orange" id="myStepsCount"></span>
+        <div style="display:flex;gap:12px;">
+          <button class="regen" id="btnStepsAll">全て選択</button>
+          <button class="regen" id="btnStepsNone">全て解除</button>
+        </div>
+      </div>
+      <div class="choice-chips" id="myStepsChips" style="max-height:220px;"></div>
+    </div>
+  </div>
+  </div><!-- /col-left -->
+
+  <!-- ③ ラインデザイン -->
   <div class="section" id="sec2" style="display:none;">
-    <div class="step-num">Step 2 — Design</div>
+    <div class="step-num">Step 3 — Design</div>
     <h2>カービングにステップを当てはめる</h2>
     <p class="note"><b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。</p>
 
@@ -310,6 +330,13 @@
       <button class="btn" id="btnRandomAll">🎲 ステップを全ておまかせ</button>
       <button class="btn" id="btnUndo">↩ 戻す</button>
       <button class="btn" id="btnClear">リセット</button>
+      <button class="btn" id="btnSaveLine">💾 ラインを保存</button>
+    </div>
+
+    <div class="card" id="savedLinesCard" style="margin-top:16px;display:none;">
+      <div class="card-head"><span class="badge orange">SAVED LINES</span></div>
+      <div id="savedLinesList"></div>
+      <p class="provisional">※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）</p>
     </div>
 
     <details>
@@ -536,6 +563,55 @@ let analyzedPath = null;
 let animating = false;
 let landmarkCache = []; // 解析リプレイ用
 let _clickState = null; // 手動ダブルクリック検出用
+
+/* ============================================================
+   STORAGE — デモ用の保存層（アプリ化の際はここをAPI呼び出しに差し替える）
+   localStorageが使えない環境ではメモリ内フォールバックで動作
+   ============================================================ */
+const _memStore = {};
+function stGet(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+  catch (e) { return _memStore[key] || null; }
+}
+function stSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); }
+  catch (e) { _memStore[key] = val; }
+}
+
+/* ============================================================
+   MY STEPS — できるステップのフィルタ（自動保存）
+   ============================================================ */
+const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
+let masteredSteps = new Set(RAW_STEPS.map(s => s.name)); // 初期値: 全て
+{
+  const saved = stGet('stem_my_steps');
+  if (Array.isArray(saved) && saved.length) {
+    masteredSteps = new Set(saved.filter(n => RAW_STEPS.some(s => s.name === n)));
+  }
+}
+function saveMySteps() { stSet('stem_my_steps', [...masteredSteps]); }
+
+function renderMySteps() {
+  const box = document.getElementById('myStepsChips');
+  box.innerHTML = '';
+  RAW_STEPS.forEach(s => {
+    const c = document.createElement('span');
+    const on = masteredSteps.has(s.name);
+    c.className = 'cchip' + (on ? ' on' : '');
+    c.innerHTML = `${s.name}<span class="lv">${s.level}</span>`;
+    c.onclick = () => {
+      if (masteredSteps.has(s.name)) masteredSteps.delete(s.name);
+      else masteredSteps.add(s.name);
+      saveMySteps();
+      renderMySteps();
+      if (document.getElementById('sec2').style.display !== 'none') { renderDesign(); renderPicker(); }
+    };
+    box.appendChild(c);
+  });
+  document.getElementById('myStepsCount').textContent = `${masteredSteps.size} / ${RAW_STEPS.length} ステップ`;
+}
+document.getElementById('btnStepsAll').onclick = () => { masteredSteps = new Set(RAW_STEPS.map(s => s.name)); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
+document.getElementById('btnStepsNone').onclick = () => { masteredSteps = new Set(); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
 let _history = [];       // Undo履歴
 
 function pushHistory() {
@@ -733,6 +809,8 @@ function stepSpan(step, matchedAlt) {
 function candidatesAt(j, sides) {
   const ori = orientationAt(j);
   return ALL_STEPS.filter(s => {
+    // できるステップフィルタ（スイッチ版は元ステップの習得状況で判定）
+    if (!masteredSteps.has(baseName(s.name))) return false;
     if (s.fakie) {
       // フェイキー系 = 後ろ向き（スイッチ状態）で始まるステップ → 反転ステップ後のみ
       if (ori !== -1) return false;
@@ -810,6 +888,7 @@ function renderDesign(animate = false) {
   assignments = assignments.filter(a => {
     const st = ALL_STEPS.find(s => s.name === a.name);
     if (!st) return false;
+    if (!masteredSteps.has(baseName(st.name))) return false; // 未習得ステップは外す
     if (a.seg >= numSegments()) return false;
     const alts = st.seq.split('|');
     return alts.some(alt => {
@@ -1421,6 +1500,81 @@ document.getElementById('skipAnalysis').onclick = () => {
 document.getElementById('btnReplay').onclick = () => renderDesign(true);
 document.getElementById('btnUndo').onclick = () => undo();
 
+/* ============================================================
+   SAVED LINES — 完成ラインの保存（デモ。アプリ版はサーバー保存に差し替え）
+   ============================================================ */
+function getSavedLines() { return stGet('stem_saved_lines') || []; }
+
+document.getElementById('btnSaveLine').onclick = () => {
+  const lines = getSavedLines();
+  const d = new Date();
+  const name = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} のライン`;
+  lines.unshift({
+    name,
+    stance, startSide, segCount,
+    boundaries: boundaries.slice(),
+    sideOverrides: { ...sideOverrides },
+    assignments: assignments.map(a => ({ ...a })),
+    finishTrick,
+    analyzed: analyzedPath ? { dense: analyzedPath.dense, turns: analyzedPath.turns } : null,
+  });
+  if (lines.length > 10) lines.pop(); // デモは10件まで
+  stSet('stem_saved_lines', lines);
+  renderSavedLines();
+};
+
+function loadLine(i) {
+  const l = getSavedLines()[i];
+  if (!l) return;
+  pushHistory();
+  stance = l.stance; startSide = l.startSide; segCount = l.segCount;
+  boundaries = l.boundaries.slice();
+  sideOverrides = { ...l.sideOverrides };
+  assignments = l.assignments.map(a => ({ ...a }));
+  finishTrick = l.finishTrick;
+  analyzedPath = l.analyzed ? { dense: l.analyzed.dense, turns: l.analyzed.turns } : null;
+  selected = null;
+  document.querySelectorAll('#stanceSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === stance));
+  document.querySelectorAll('#startSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === startSide));
+  document.querySelectorAll('#arcSeg button').forEach(b => b.classList.toggle('on', +b.dataset.v === segCount));
+  document.getElementById('arcSetting').style.display = analyzedPath ? 'none' : 'block';
+  document.getElementById('startSetting').style.display = analyzedPath ? 'none' : 'block';
+  document.getElementById('modeBadge').textContent = analyzedPath ? 'YOUR CARVING' : 'DESIGN MODE';
+  document.getElementById('sec2').style.display = 'block';
+  document.getElementById('mainGrid').classList.add('two-col');
+  renderDesign(); renderPicker();
+  document.getElementById('sec2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function deleteLine(i) {
+  const lines = getSavedLines();
+  lines.splice(i, 1);
+  stSet('stem_saved_lines', lines);
+  renderSavedLines();
+}
+
+function renderSavedLines() {
+  const lines = getSavedLines();
+  const card = document.getElementById('savedLinesCard');
+  const list = document.getElementById('savedLinesList');
+  card.style.display = lines.length ? 'block' : 'none';
+  list.innerHTML = '';
+  lines.forEach((l, i) => {
+    const row = document.createElement('div');
+    row.className = 'se-row';
+    const steps = l.assignments.map(a => a.name).join(' → ') || 'カービングのみ';
+    row.innerHTML = `<span class="se-name"><b>${l.name}</b><br><span style="font-size:11px;color:var(--ink-3);">${steps}${l.finishTrick ? ' → FINISH: ' + l.finishTrick : ''}</span></span>`;
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'regen'; loadBtn.textContent = '開く';
+    loadBtn.onclick = () => loadLine(i);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-marker'; delBtn.style.marginLeft = '0'; delBtn.textContent = '削除';
+    delBtn.onclick = () => deleteLine(i);
+    row.appendChild(loadBtn); row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+
 /* ステップを全ておまかせ: 空いている区間を先頭から順にランダムで埋める
    （サイド整合・スイッチ解禁ルールを守る。最初の区間はプレカーブ優先）*/
 document.getElementById('btnRandomAll').onclick = () => {
@@ -2003,6 +2157,8 @@ function processAnalysis(track) {
 }
 
 renderSideEditor();
+renderMySteps();
+renderSavedLines();
 </script>
 </body>
 </html>
