@@ -6,7 +6,7 @@
 <title>STEM — Line Designer</title>
 
 <!-- PWA: ホーム画面アプリ化 -->
-<meta name="theme-color" content="#E6EDF2">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -60,6 +60,19 @@
   .brand h1 { font-size: 32px; letter-spacing: .16em; font-weight: 700; }
   .brand span { font-size: 11.5px; color: var(--ink-3); letter-spacing: .22em; font-weight: 700; }
   .tagline { font-size: 13px; color: var(--ink-2); margin-top: 6px; letter-spacing: .04em; }
+  .nav-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .nav-btn {
+    padding: 8px 16px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--glass-border); background: var(--glass); color: var(--ink-2);
+    font-weight: 700; font-family: var(--font);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  .nav-btn:hover { border-color: var(--cool); color: var(--ink); }
+  .back-btn {
+    display: inline-block; margin-bottom: 14px; padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; cursor: pointer; border: 1px solid var(--glass-border);
+    background: var(--glass); color: var(--ink-2); font-weight: 700; font-family: var(--font);
+  }
 
   .main-grid { display: grid; gap: 24px; }
   .col-left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
@@ -231,7 +244,11 @@
 
   <header>
     <div class="brand"><h1>STEM</h1><span>LINE DESIGNER</span></div>
-    <p class="tagline">あなたのカービングから、あなただけのラインを作る。</p>
+    <div class="nav-row">
+      <button class="nav-btn" id="navMySteps">マイステップ</button>
+      <button class="nav-btn" id="navSaved">保存したライン</button>
+      <button class="nav-btn" id="navHelp">使い方</button>
+    </div>
   </header>
 
   <div class="main-grid" id="mainGrid">
@@ -240,7 +257,6 @@
   <div class="section" id="sec1">
     <div class="step-num">Step 1 — Carving</div>
     <h2>カービングを検知する</h2>
-    <p class="note">正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。</p>
     <div id="uploadZone" class="upload-zone">
       <input type="file" id="videoInput" accept="video/*" style="display:none;">
       <div class="uz-icon">🎬</div>
@@ -254,6 +270,7 @@
       <p id="modelStatus" style="font-size:12px;color:var(--ink-3);">初回のみ数秒かかります</p>
     </div>
 
+    <div id="analysisHome">
     <div id="analysisArea" style="display:none;">
       <canvas id="overlayCanvas" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;margin-bottom:10px;"></canvas>
       <div id="progressWrap">
@@ -266,13 +283,14 @@
         <button class="btn" id="btnReplayAnalysis">🔁 解析映像を再生</button>
       </div>
     </div>
+    </div>
   </div>
 
   <!-- ②' できるステップの選択（フィルタ） -->
-  <div class="section" id="secSteps">
-    <div class="step-num">Step 2 — My Steps</div>
+  <div class="section" id="secSteps" style="display:none;">
+    <button class="back-btn" id="backFromSteps">← 戻る</button>
+    <div class="step-num">My Steps</div>
     <h2>できるステップを選ぶ</h2>
-    <p class="note">選んだステップだけが候補に表示されます。<br>新しいステップを習得したらここで更新してください（自動保存されます）。<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ 各ステップの詳細（ロンスケwiki）</a></p>
     <div class="card">
       <div class="card-head">
         <span class="badge orange" id="myStepsCount"></span>
@@ -281,16 +299,31 @@
           <button class="regen" id="btnStepsNone">全て解除</button>
         </div>
       </div>
-      <div class="choice-chips" id="myStepsChips" style="max-height:220px;"></div>
+      <div class="choice-chips" id="myStepsChips" style="max-height:300px;"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-head"><span class="badge orange">CUSTOM STEP</span></div>
+      <p class="picker-hint" style="margin:0 0 10px;">オリジナルのステップを追加できます。カービングは 1=ヒール、2=トゥ、0=カービングなし を左から順に（例: 21）</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="customStepName" placeholder="ステップ名" style="flex:2;min-width:140px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:var(--font);font-size:13px;">
+        <input id="customStepSeq" placeholder="カービング (例: 21)" style="flex:1;min-width:110px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:monospace;font-size:13px;">
+        <button class="btn primary" id="btnAddCustomStep" style="padding:10px 20px;">追加</button>
+      </div>
+      <div id="customStepList" style="margin-top:10px;"></div>
     </div>
   </div>
   </div><!-- /col-left -->
 
   <!-- ③ ラインデザイン -->
   <div class="section" id="sec2" style="display:none;">
-    <div class="step-num">Step 3 — Design</div>
+    <div class="step-num">Step 2 — Design</div>
     <h2>カービングにステップを当てはめる</h2>
-    <p class="note"><b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。</p>
+
+    <details id="replayDetails" style="margin:0 0 14px;display:none;">
+      <summary>🎥 解析映像を見返す</summary>
+      <div id="replayHolder" style="margin-top:10px;"></div>
+    </details>
 
     <div class="settings-row">
       <div class="setting">
@@ -358,17 +391,42 @@
       <button class="btn" id="btnSaveLine">💾 ラインを保存</button>
     </div>
 
-    <div class="card" id="savedLinesCard" style="margin-top:16px;display:none;">
-      <div class="card-head"><span class="badge orange">SAVED LINES</span></div>
-      <div id="savedLinesList"></div>
-      <p class="provisional">※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）</p>
-    </div>
-
     <details>
       <summary>⚙ ステップのカービング数列を確認・修正する</summary>
       <div class="side-editor" id="sideEditor"></div>
       <p class="provisional">1=ヒールサイドカーブ、2=トゥサイドカーブ、0=カービングなし、*=どのカーブでも可。左から順にステップ内のカービング。スイッチ版は自動生成（1⇄2反転）。修正はセッション中のみ有効。</p>
     </details>
+  </div>
+
+  <!-- 保存したライン画面 -->
+  <div class="section" id="secSaved" style="display:none;">
+    <button class="back-btn" id="backFromSaved">← 戻る</button>
+    <div class="step-num">Saved Lines</div>
+    <h2>保存したライン</h2>
+    <div class="card" id="savedLinesCard">
+      <div id="savedLinesList"></div>
+      <p class="provisional" id="savedEmptyHint">まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。</p>
+      <p class="provisional">※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）</p>
+    </div>
+  </div>
+
+  <!-- 使い方画面 -->
+  <div class="section" id="secHelp" style="display:none;">
+    <button class="back-btn" id="backFromHelp">← 戻る</button>
+    <div class="step-num">How to Use</div>
+    <h2>使い方</h2>
+    <div class="card">
+      <h2 style="font-size:14px;">① カービングを検知する</h2>
+      <p class="note" style="margin-bottom:0;">正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。</p>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h2 style="font-size:14px;">② カービングにステップを当てはめる</h2>
+      <p class="note" style="margin-bottom:0;"><b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。</p>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h2 style="font-size:14px;">マイステップ</h2>
+      <p class="note" style="margin-bottom:0;">選んだステップだけが候補に表示されます。<br>新しいステップを習得したら「マイステップ」画面で更新してください（自動保存されます）。<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ 各ステップの詳細（ロンスケwiki）</a></p>
+    </div>
   </div>
 
   </div><!-- /main-grid -->
@@ -384,6 +442,8 @@ const RAW_STEPS = [
   { name:'クロスステップ',           level:'初級+',  seq:'21' },
   { name:'BWクロスステップ',         level:'中級',   seq:'1' },
   { name:'TSクロスステップ',         level:'中級',   seq:'2' },
+  { name:'FK BWクロスステップ',      level:'中級+',  seq:'2' },
+  { name:'FK TSクロスステップ',      level:'中級+',  seq:'1' },
   { name:'180ステップ',              level:'初級',   seq:'2' },
   { name:'スイッチステップ',         level:'初級+',  seq:'21' },
   { name:'360ステップ',              level:'初級+',  seq:'21' },
@@ -604,6 +664,18 @@ function stSet(key, val) {
 }
 
 /* ============================================================
+   CUSTOM STEPS — ユーザー定義ステップ（保存・削除可能）
+   起動時にRAW_STEPSへマージしてからALL_STEPSを再構築する
+   ============================================================ */
+function getCustomSteps() { return stGet('stem_custom_steps') || []; }
+getCustomSteps().forEach(cs => {
+  if (!RAW_STEPS.some(s => s.name === cs.name)) {
+    RAW_STEPS.push({ name: cs.name, level: 'カスタム', seq: cs.seq, custom: true });
+  }
+});
+ALL_STEPS = buildAllSteps();
+
+/* ============================================================
    MY STEPS — できるステップのフィルタ（自動保存）
    ============================================================ */
 const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
@@ -634,9 +706,61 @@ function renderMySteps() {
     box.appendChild(c);
   });
   document.getElementById('myStepsCount').textContent = `${masteredSteps.size} / ${RAW_STEPS.length} ステップ`;
+  renderCustomStepList();
 }
 document.getElementById('btnStepsAll').onclick = () => { masteredSteps = new Set(RAW_STEPS.map(s => s.name)); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
 document.getElementById('btnStepsNone').onclick = () => { masteredSteps = new Set(); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
+
+/* カスタムステップの一覧・追加・削除 */
+function renderCustomStepList() {
+  const list = document.getElementById('customStepList');
+  const customs = getCustomSteps();
+  list.innerHTML = '';
+  customs.forEach(cs => {
+    const row = document.createElement('div');
+    row.className = 'se-row';
+    row.innerHTML = `<span class="se-name">${cs.name} <span style="font-family:monospace;color:var(--ink-3);font-size:11px;">(${cs.seq})</span></span>`;
+    const del = document.createElement('button');
+    del.className = 'del-marker'; del.style.marginLeft = '0'; del.textContent = '削除';
+    del.onclick = () => deleteCustomStep(cs.name);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+document.getElementById('btnAddCustomStep').onclick = () => {
+  const nameEl = document.getElementById('customStepName');
+  const seqEl = document.getElementById('customStepSeq');
+  const name = nameEl.value.trim();
+  const seq = seqEl.value.trim();
+  if (!name) { alert('ステップ名を入力してください'); return; }
+  if (RAW_STEPS.some(s => s.name === name) || ALL_STEPS.some(s => s.name === name)) {
+    alert('同じ名前のステップがすでに存在します'); return;
+  }
+  if (!/^([012*]+(\|[012*]+)*)$/.test(seq)) {
+    alert('カービングは 0 / 1 / 2 の数字で入力してください（例: 21）'); return;
+  }
+  const customs = getCustomSteps();
+  customs.push({ name, seq });
+  stSet('stem_custom_steps', customs);
+  RAW_STEPS.push({ name, level: 'カスタム', seq, custom: true });
+  ALL_STEPS = buildAllSteps();
+  masteredSteps.add(name);
+  saveMySteps();
+  nameEl.value = ''; seqEl.value = '';
+  renderMySteps(); renderCustomStepList(); renderSideEditor();
+};
+
+function deleteCustomStep(name) {
+  stSet('stem_custom_steps', getCustomSteps().filter(cs => cs.name !== name));
+  const idx = RAW_STEPS.findIndex(s => s.name === name && s.custom);
+  if (idx >= 0) RAW_STEPS.splice(idx, 1);
+  ALL_STEPS = buildAllSteps();
+  masteredSteps.delete(name);
+  saveMySteps();
+  assignments = assignments.filter(a => baseName(a.name) !== name);
+  renderMySteps(); renderCustomStepList(); renderSideEditor();
+}
 let _history = [];       // Undo履歴
 
 function pushHistory() {
@@ -1514,16 +1638,42 @@ bindSeg('arcSeg', v => { segCount = +v; assignments = []; sideOverrides = {}; se
 let randDiff = 1; // 0=初級 1=中級 2=上級
 bindSeg('diffSeg', v => { randDiff = +v; });
 
+/* ============================================================
+   VIEW ROUTER — SPA風のページ切り替え
+   ① home: 動画インポート＆検出 / ② design: 俯瞰図メイン
+   サブ画面: mysteps / saved / help（戻るで直前のメイン画面へ）
+   ============================================================ */
+const VIEWS = { home: 'sec1', design: 'sec2', mysteps: 'secSteps', saved: 'secSaved', help: 'secHelp' };
+let lastMain = 'home';
+function showView(name) {
+  Object.values(VIEWS).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const el = document.getElementById(VIEWS[name]);
+  if (el) el.style.display = 'block';
+  if (name === 'home' || name === 'design') lastMain = name;
+  window.scrollTo({ top: 0 });
+}
+document.getElementById('navMySteps').onclick = () => { renderMySteps(); showView('mysteps'); };
+document.getElementById('navSaved').onclick = () => { renderSavedLines(); showView('saved'); };
+document.getElementById('navHelp').onclick = () => showView('help');
+document.getElementById('backFromSteps').onclick = () => {
+  if (document.getElementById('sec2') && lastMain === 'design') { renderDesign(); renderPicker(); }
+  showView(lastMain);
+};
+document.getElementById('backFromSaved').onclick = () => showView(lastMain);
+document.getElementById('backFromHelp').onclick = () => showView(lastMain);
+
 document.getElementById('skipAnalysis').onclick = () => {
   analyzedPath = null;
   boundaries = []; sideOverrides = {}; assignments = []; finishTrick = null; selected = null;
   document.getElementById('arcSetting').style.display = 'block';
   document.getElementById('startSetting').style.display = 'block';
   document.getElementById('modeBadge').textContent = 'DESIGN MODE';
-  document.getElementById('sec2').style.display = 'block';
-  document.getElementById('mainGrid').classList.add('two-col');
+  document.getElementById('replayDetails').style.display = 'none';
+  showView('design');
   renderDesign();
-  document.getElementById('sec2').scrollIntoView({ behavior: 'smooth' });
 };
 
 document.getElementById('btnReplay').onclick = () => renderDesign(true);
@@ -1550,6 +1700,9 @@ document.getElementById('btnSaveLine').onclick = () => {
   if (lines.length > 10) lines.pop(); // デモは10件まで
   stSet('stem_saved_lines', lines);
   renderSavedLines();
+  const btn = document.getElementById('btnSaveLine');
+  btn.textContent = '✅ 保存しました';
+  setTimeout(() => { btn.textContent = '💾 ラインを保存'; }, 1600);
 };
 
 function loadLine(i) {
@@ -1569,10 +1722,8 @@ function loadLine(i) {
   document.getElementById('arcSetting').style.display = analyzedPath ? 'none' : 'block';
   document.getElementById('startSetting').style.display = analyzedPath ? 'none' : 'block';
   document.getElementById('modeBadge').textContent = analyzedPath ? 'YOUR CARVING' : 'DESIGN MODE';
-  document.getElementById('sec2').style.display = 'block';
-  document.getElementById('mainGrid').classList.add('two-col');
+  showView('design');
   renderDesign(); renderPicker();
-  document.getElementById('sec2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function deleteLine(i) {
@@ -1582,24 +1733,41 @@ function deleteLine(i) {
   renderSavedLines();
 }
 
+function renameLine(i) {
+  const lines = getSavedLines();
+  const cur = lines[i];
+  if (!cur) return;
+  const name = prompt('ラインの名前を変更', cur.name);
+  if (name === null) return;
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  cur.name = trimmed;
+  stSet('stem_saved_lines', lines);
+  renderSavedLines();
+}
+
 function renderSavedLines() {
   const lines = getSavedLines();
-  const card = document.getElementById('savedLinesCard');
   const list = document.getElementById('savedLinesList');
-  card.style.display = lines.length ? 'block' : 'none';
+  const empty = document.getElementById('savedEmptyHint');
+  if (empty) empty.style.display = lines.length ? 'none' : 'block';
   list.innerHTML = '';
   lines.forEach((l, i) => {
     const row = document.createElement('div');
     row.className = 'se-row';
     const steps = l.assignments.map(a => a.name).join(' → ') || 'カービングのみ';
     row.innerHTML = `<span class="se-name"><b>${l.name}</b><br><span style="font-size:11px;color:var(--ink-3);">${steps}${l.finishTrick ? ' → FINISH: ' + l.finishTrick : ''}</span></span>`;
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'regen'; renameBtn.textContent = '✏';
+    renameBtn.title = '名前を変更';
+    renameBtn.onclick = () => renameLine(i);
     const loadBtn = document.createElement('button');
     loadBtn.className = 'regen'; loadBtn.textContent = '開く';
     loadBtn.onclick = () => loadLine(i);
     const delBtn = document.createElement('button');
     delBtn.className = 'del-marker'; delBtn.style.marginLeft = '0'; delBtn.textContent = '削除';
     delBtn.onclick = () => deleteLine(i);
-    row.appendChild(loadBtn); row.appendChild(delBtn);
+    row.appendChild(renameBtn); row.appendChild(loadBtn); row.appendChild(delBtn);
     list.appendChild(row);
   });
 }
@@ -1706,7 +1874,11 @@ document.getElementById('btnReAnalyze').onclick = () => {
   seedPoint = null;
   landmarkCache = [];
   document.getElementById('replayRow').style.display = 'none';
-  document.getElementById('sec1').scrollIntoView({ behavior: 'smooth' });
+  // 解析エリアをホーム画面へ戻す
+  const area = document.getElementById('analysisArea');
+  document.getElementById('analysisHome').appendChild(area);
+  document.getElementById('replayDetails').style.display = 'none';
+  showView('home');
   setTimeout(() => videoInput.click(), 300);
 };
 
@@ -1774,7 +1946,9 @@ async function loadPoseModel() {
   );
   poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
     baseOptions: {
-      modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
+      modelAssetPath: IS_MOBILE
+        ? 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
+        : 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
       delegate: 'GPU'
     },
     runningMode: 'IMAGE',  // フレーム独立検出（2本目以降の動画・クロップ検出に対応）
@@ -1784,9 +1958,15 @@ async function loadPoseModel() {
   });
 }
 
+/* モバイル判定: 性能に合わせて解析設定を軽量化する */
+const IS_MOBILE = matchMedia('(pointer: coarse)').matches || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 function seekTo(t) {
   return new Promise(res => {
-    videoEl.onseeked = () => res();
+    let done = false;
+    // iOS Safari等でseekedイベントが返らないことがあるため、タイムアウトで必ず前進させる
+    const to = setTimeout(() => { if (!done) { done = true; res(); } }, 1500);
+    videoEl.onseeked = () => { if (!done) { done = true; clearTimeout(to); res(); } };
     videoEl.currentTime = t;
   });
 }
@@ -1847,7 +2027,7 @@ async function analyzeVideo() {
   const cropCv = document.createElement('canvas');
   const cctx = cropCv.getContext('2d');
 
-  const SAMPLE_FPS = 16; // 頂点タイミングの精度向上のため高密度サンプリング
+  const SAMPLE_FPS = IS_MOBILE ? 8 : 16; // モバイルは軽量化のため半分のサンプリング密度
   const totalSamples = Math.floor(videoDuration * SAMPLE_FPS);
   const track = [];
   const trail = [];
@@ -2179,10 +2359,12 @@ function processAnalysis(track) {
   document.getElementById('arcSetting').style.display = 'none';
   document.getElementById('startSetting').style.display = 'none';
   document.getElementById('modeBadge').textContent = 'YOUR CARVING';
-  document.getElementById('sec2').style.display = 'block';
-  document.getElementById('mainGrid').classList.add('two-col');
+  // 解析映像（キャンバス＋リプレイボタン）を設計画面の「解析映像を見返す」へ移動
+  const area = document.getElementById('analysisArea');
+  document.getElementById('replayHolder').appendChild(area);
+  document.getElementById('replayDetails').style.display = 'block';
+  showView('design');
   renderDesign();
-  document.getElementById('sec2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 renderSideEditor();
