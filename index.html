@@ -54,20 +54,29 @@
       radial-gradient(460px 420px at 70% 75%, rgba(168,196,212,.3), transparent 60%);
     filter: blur(2px);
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 90px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 110px; }
   header { padding: 34px 0 26px; }
-  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand { display: flex; align-items: baseline; gap: 12px; justify-content: center; text-align: center; }
   .brand h1 { font-size: 32px; letter-spacing: .16em; font-weight: 700; }
   .brand span { font-size: 11.5px; color: var(--ink-3); letter-spacing: .22em; font-weight: 700; }
   .tagline { font-size: 13px; color: var(--ink-2); margin-top: 6px; letter-spacing: .04em; }
-  .nav-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .nav-btn {
-    padding: 8px 16px; border-radius: 999px; font-size: 12px; cursor: pointer;
-    border: 1px solid var(--glass-border); background: var(--glass); color: var(--ink-2);
-    font-weight: 700; font-family: var(--font);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  .tab-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: flex; justify-content: center; align-items: stretch; gap: 8vw;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(255,255,255,.72);
+    backdrop-filter: blur(26px) saturate(150%);
+    -webkit-backdrop-filter: blur(26px) saturate(150%);
+    border-top: 1px solid var(--glass-border);
   }
-  .nav-btn:hover { border-color: var(--cool); color: var(--ink); }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    border: none; background: none; cursor: pointer; color: var(--ink-2);
+    font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    padding: 4px 10px;
+  }
+  .tab-item svg { width: 24px; height: 24px; }
+  .tab-item:hover, .tab-item.active { color: var(--ink); }
   .back-btn {
     display: inline-block; margin-bottom: 14px; padding: 8px 16px; border-radius: 999px;
     font-size: 12px; cursor: pointer; border: 1px solid var(--glass-border);
@@ -94,7 +103,12 @@
     transition: all .2s;
   }
   .upload-zone:hover { border-color: var(--cool); background: rgba(255,255,255,.68); }
-  .uz-icon { font-size: 26px; }
+  .uz-plus {
+    width: 58px; height: 58px; margin: 0 auto; border-radius: 50%;
+    background: linear-gradient(135deg, var(--cool) 0%, var(--cool-deep) 100%);
+    color: #fff; font-size: 34px; font-weight: 400; line-height: 56px;
+    box-shadow: 0 10px 28px rgba(94,140,167,.4);
+  }
   .uz-text { font-size: 14px; font-weight: 700; margin-top: 8px; letter-spacing: .03em; }
   .uz-sub { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
   .skip-link { text-align: center; margin-top: 12px; font-size: 12px; }
@@ -244,11 +258,6 @@
 
   <header>
     <div class="brand"><h1>STEM</h1><span>LINE DESIGNER</span></div>
-    <div class="nav-row">
-      <button class="nav-btn" id="navMySteps">マイステップ</button>
-      <button class="nav-btn" id="navSaved">保存したライン</button>
-      <button class="nav-btn" id="navHelp">使い方</button>
-    </div>
   </header>
 
   <div class="main-grid" id="mainGrid">
@@ -259,8 +268,8 @@
     <h2>カービングを検知する</h2>
     <div id="uploadZone" class="upload-zone">
       <input type="file" id="videoInput" accept="video/*" style="display:none;">
-      <div class="uz-icon">🎬</div>
-      <div class="uz-text">タップして動画を選択</div>
+      <div class="uz-plus">+</div>
+      <div class="uz-text">動画を選択</div>
       <div class="uz-sub">mp4 / mov — AIがボード軌道を自動検出</div>
     </div>
     <div class="skip-link"><a id="skipAnalysis">動画なしでラインを設計する →</a></div>
@@ -391,6 +400,17 @@
       <button class="btn" id="btnSaveLine">💾 ラインを保存</button>
     </div>
 
+    <details style="margin-top:18px;">
+      <summary>🎯 滑走チェック — ステップを入れて滑った動画と元のカービングを比較</summary>
+      <div class="card" style="margin-top:10px;">
+        <p class="picker-hint" style="margin:0 0 10px;">ステップを当てはめて滑った動画をアップロードすると、最初に解析したカービングとの<b>整合率</b>を計算します。ステップを入れると軌道が元からずれることがあるため、その確認用の追加機能です。</p>
+        <input type="file" id="checkInput" accept="video/*" style="display:none;">
+        <button class="btn" id="btnCheckUpload">📹 チェック動画をアップロード</button>
+        <div id="checkHolder" style="margin-top:12px;"></div>
+        <div id="checkResult" style="display:none;margin-top:12px;"></div>
+      </div>
+    </details>
+
     <details>
       <summary>⚙ ステップのカービング数列を確認・修正する</summary>
       <div class="side-editor" id="sideEditor"></div>
@@ -401,8 +421,8 @@
   <!-- 保存したライン画面 -->
   <div class="section" id="secSaved" style="display:none;">
     <button class="back-btn" id="backFromSaved">← 戻る</button>
-    <div class="step-num">Saved Lines</div>
-    <h2>保存したライン</h2>
+    <div class="step-num">My Lines</div>
+    <h2>マイライン</h2>
     <div class="card" id="savedLinesCard">
       <div id="savedLinesList"></div>
       <p class="provisional" id="savedEmptyHint">まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。</p>
@@ -431,7 +451,33 @@
 
   </div><!-- /main-grid -->
 
-  <footer>STEM by Ryo Ogasawara — Longboard Dance Line Designer</footer>
+  <nav class="tab-bar">
+    <button class="tab-item" id="navMySteps">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="8.5" cy="7.5" rx="2.6" ry="3.6"/>
+        <path d="M7 12.5h3v2.2a1.5 1.5 0 0 1-3 0z" fill="currentColor" stroke="none"/>
+        <ellipse cx="15.5" cy="13.5" rx="2.6" ry="3.6"/>
+        <path d="M14 18.5h3v2a1.5 1.5 0 0 1-3 0z" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>マイステップ</span>
+    </button>
+    <button class="tab-item" id="navSaved">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M12 21c-6 -3.2 -6 -6.2 0 -9c6 -2.8 6 -5.8 0 -9"/>
+        <circle cx="12" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="3" r="1.4" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>マイライン</span>
+    </button>
+    <button class="tab-item" id="navHelp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="17" x2="20" y2="17"/>
+      </svg>
+      <span>使い方</span>
+    </button>
+  </nav>
 </div>
 
 <script>
@@ -1861,7 +1907,9 @@ function renderSideEditor() {
    VIDEO ANALYSIS — MediaPipe Pose（ランドマークをキャッシュして再生可能に）
    ============================================================ */
 const videoEl = document.createElement('video');
-videoEl.muted = true; videoEl.playsInline = true;
+videoEl.muted = true; videoEl.playsInline = true; videoEl.preload = 'auto';
+let activeVideo = videoEl;   // 解析対象の動画（滑走チェック時は別のvideo要素に切り替わる）
+let analysisMode = 'main';   // 'main' = 通常解析 / 'check' = 滑走チェック
 let videoDuration = 0;
 let poseLandmarker = null;
 
@@ -1912,15 +1960,26 @@ async function showSeedFrame() {
   const ov = document.getElementById('overlayCanvas');
   const OV_W = 640;
   ov.width = OV_W;
-  ov.height = Math.round(videoEl.videoHeight * OV_W / videoEl.videoWidth);
+  ov.height = Math.round(activeVideo.videoHeight * OV_W / activeVideo.videoWidth);
   const octx = ov.getContext('2d');
+
+  // 初回アップロード時、メタデータ直後はフレーム未デコードで真っ白になるため
+  // データ到達(readyState>=2)を待ってから描く
+  if (activeVideo.readyState < 2) {
+    await new Promise(r => activeVideo.addEventListener('loadeddata', r, { once: true }));
+  }
   await seekTo(0.05);
-  octx.drawImage(videoEl, 0, 0, ov.width, ov.height);
-  octx.fillStyle = 'rgba(0,0,0,0.55)';
-  octx.fillRect(0, 0, ov.width, 34);
-  octx.font = 'bold 15px sans-serif';
-  octx.fillStyle = '#ffffff';
-  octx.fillText('👆 スケーター（人物）をタップしてください', 12, 23);
+
+  const drawSeed = () => {
+    octx.drawImage(activeVideo, 0, 0, ov.width, ov.height);
+    octx.fillStyle = 'rgba(0,0,0,0.55)';
+    octx.fillRect(0, 0, ov.width, 34);
+    octx.font = 'bold 15px sans-serif';
+    octx.fillStyle = '#ffffff';
+    octx.fillText('👆 スケーター（人物）をタップしてください', 12, 23);
+  };
+  drawSeed();
+  setTimeout(drawSeed, 350); // デコード遅延の保険（初回でも確実に映るように再描画）
   document.getElementById('progressText').textContent = '最初のフレームで人物の位置を指定すると、追跡精度が上がります';
   document.getElementById('progressBar').style.width = '0%';
 
@@ -1946,9 +2005,8 @@ async function loadPoseModel() {
   );
   poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
     baseOptions: {
-      modelAssetPath: IS_MOBILE
-        ? 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
-        : 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
+      // 精度優先: 全デバイスでfullモデルを使用（liteは精度が体感で大きく落ちるため不採用）
+      modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
       delegate: 'GPU'
     },
     runningMode: 'IMAGE',  // フレーム独立検出（2本目以降の動画・クロップ検出に対応）
@@ -1965,16 +2023,16 @@ function seekTo(t) {
   return new Promise(res => {
     let done = false;
     // iOS Safari等でseekedイベントが返らないことがあるため、タイムアウトで必ず前進させる
-    const to = setTimeout(() => { if (!done) { done = true; res(); } }, 1500);
-    videoEl.onseeked = () => { if (!done) { done = true; clearTimeout(to); res(); } };
-    videoEl.currentTime = t;
+    const to = setTimeout(() => { if (!done) { done = true; res(); } }, 2500);
+    activeVideo.onseeked = () => { if (!done) { done = true; clearTimeout(to); res(); } };
+    activeVideo.currentTime = t;
   });
 }
 
 const BONES = [[11,12],[11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28],[11,13],[12,14],[13,15],[14,16]];
 
 function drawOverlayFrame(octx, ov, lmPoints, trail, detected) {
-  octx.drawImage(videoEl, 0, 0, ov.width, ov.height);
+  octx.drawImage(activeVideo, 0, 0, ov.width, ov.height);
   if (lmPoints) {
     octx.strokeStyle = 'rgba(94,140,167,0.95)';
     octx.lineWidth = 2;
@@ -2019,15 +2077,15 @@ async function analyzeVideo() {
   const ov = document.getElementById('overlayCanvas');
   const OV_W = 640;
   ov.width = OV_W;
-  ov.height = Math.round(videoEl.videoHeight * OV_W / videoEl.videoWidth);
+  ov.height = Math.round(activeVideo.videoHeight * OV_W / activeVideo.videoWidth);
   const octx = ov.getContext('2d');
 
-  const VW = videoEl.videoWidth, VH = videoEl.videoHeight;
+  const VW = activeVideo.videoWidth, VH = activeVideo.videoHeight;
   // 追跡ウィンドウ: 前回の人物位置（初回はシードクリック）周辺をクロップして検出
   const cropCv = document.createElement('canvas');
   const cctx = cropCv.getContext('2d');
 
-  const SAMPLE_FPS = IS_MOBILE ? 8 : 16; // モバイルは軽量化のため半分のサンプリング密度
+  const SAMPLE_FPS = IS_MOBILE ? 12 : 16; // モバイルは少しだけ軽量化（8fpsは頂点を取りこぼすため12に）
   const totalSamples = Math.floor(videoDuration * SAMPLE_FPS);
   const track = [];
   const trail = [];
@@ -2049,7 +2107,7 @@ async function analyzeVideo() {
     const up = Math.max(1, Math.min(3, 520 / ch));
     cropCv.width = Math.round(cw * up);
     cropCv.height = Math.round(ch * up);
-    cctx.drawImage(videoEl, x0, y0, cw, ch, 0, 0, cropCv.width, cropCv.height);
+    cctx.drawImage(activeVideo, x0, y0, cw, ch, 0, 0, cropCv.width, cropCv.height);
     const result = poseLandmarker.detect(cropCv);
     if (!result.landmarks || !result.landmarks.length) return [];
     const toFull = p => ({ x: (x0 + p.x * cw) / VW, y: (y0 + p.y * ch) / VH, visibility: p.visibility });
@@ -2171,7 +2229,8 @@ async function analyzeVideo() {
   }
   document.getElementById('progressWrap').style.display = 'none';
   document.getElementById('replayRow').style.display = 'flex';
-  processAnalysis(track);
+  if (analysisMode === 'check') processCheck(track);
+  else processAnalysis(track);
 }
 
 /* 解析結果の再生（キャッシュから再描画・再推論なし） */
@@ -2190,9 +2249,10 @@ document.getElementById('btnReplayAnalysis').onclick = async () => {
   btn.disabled = false;
 };
 
-function processAnalysis(track) {
+/* track（解析生データ）→ dense（スケーター視点のx-fy曲線）への変換。
+   通常解析と滑走チェックの両方で同じ変換を使う */
+function buildDense(track) {
   // gap（長期見失いからの復帰＝軌道が飛んだ点）で区切り、最長の連続区間だけを採用する。
-  // これにより一瞬の誤検出で軌道が飛んだ乱れを除去できる。
   {
     const runs = [];
     let cur = [];
@@ -2220,48 +2280,44 @@ function processAnalysis(track) {
     return { t: p.t, x: -(p.ankleX - 0.5) * corr, corr };
   });
 
-  // 遠近補正はノイズも増幅する（遠いほど最大3.5倍）ため、
-  // corrに比例した適応スムージングをかけて助走期間（人物が小さい時期）の荒ぶりを抑える
+  // 遠近補正はノイズも増幅するため、corrに比例した適応スムージング
   pts = pts.map((p, i) => {
-    const win = Math.round(p.corr);          // corr 1→窓1(3点), corr 3.5→窓4(9点)
+    const win = Math.round(p.corr);
     if (win <= 1) return { t: p.t, x: p.x };
     const s = pts.slice(Math.max(0, i - win), i + win + 1);
     return { t: p.t, x: s.reduce((a,q)=>a+q.x,0)/s.length };
   });
 
-  // === 前進距離ベースのY座標再構築 ===
-  // カメラからは頂点付近で横移動が止まって見えるが、実際は前進し続けている。
-  // 一定速度 v を仮定し dy = sqrt((v·dt)^2 - dx^2) で前進量を復元 → 弧が緩やかな半円に近づく
+  // 前進距離ベースのY座標再構築（頂点でも前進し続ける物理を反映）
   {
     const dxs = [];
     for (let i = 1; i < pts.length; i++) dxs.push(Math.abs(pts[i].x - pts[i-1].x));
     const sortedDx = dxs.slice().sort((a,b)=>a-b);
     const dxMax = sortedDx[Math.floor(sortedDx.length * 0.95)] || 0.02;
-    // 前進速度vを横振れの最大値より大きめに設定 → 各カービングが半円に近づく
-    // (v が dxMax に近いほど頂点で前進が止まり弧が尖る。v を大きくすると半円〜横長の緩い弧になる)
     const v = dxMax * 1.9;
     let y = 0;
     pts[0].fy = 0;
     for (let i = 1; i < pts.length; i++) {
       const dx = pts[i].x - pts[i-1].x;
-      // 前進量: 常に一定速度で前進していると仮定（横に振れても前進は止まらない）
-      // dyの下限を高く保つことで、頂点付近でも前に進み続け弧が半円状になる
       const dy = Math.sqrt(Math.max(v*v - dx*dx, v*v*0.5));
       y += dy;
       pts[i].fy = y;
     }
     const yMax = y || 1;
-    pts.forEach(p => p.fy = p.fy / yMax); // 0-1に正規化した前進距離
+    pts.forEach(p => p.fy = p.fy / yMax);
   }
 
-  // 検出用: ごく軽いスムージング（前後1フレーム=3点平均）→ 放物線補間で正確な頂点位置を出す
-  // 曲線自体はこの後、丸印(頂点)を制御点として構築するため、ここでの値は
-  // 「頂点検出の精度」と「手動追加点のx参照(密データ)」のためだけに使う
+  // 軽いスムージング（3点平均）で dense を確定
   const w1 = 1;
-  const sm1 = pts.map((p, i) => {
+  return pts.map((p, i) => {
     const s = pts.slice(Math.max(0, i-w1), i+w1+1);
     return { t: p.t, x: s.reduce((a,q)=>a+q.x,0)/s.length, fy: p.fy };
   });
+}
+
+function processAnalysis(track) {
+  const sm1 = buildDense(track);
+  const pts = sm1; // 頂点リファイン等の後段はdense基準で行う
 
   // 頂点（apex）検出 — プロミネンス（顕著性）ベースで高精度化
   // 1) 全ての局所極値を検出 2) 前後の反対極値との高低差で評価 3) 小さな揺れを除去 4) 山谷の交互性を保証
@@ -2365,6 +2421,105 @@ function processAnalysis(track) {
   document.getElementById('replayDetails').style.display = 'block';
   showView('design');
   renderDesign();
+}
+
+/* ============================================================
+   滑走チェック — 2本目の動画を解析し、元カービングとの整合率を出す
+   ============================================================ */
+const checkVideo = document.createElement('video');
+checkVideo.muted = true; checkVideo.playsInline = true; checkVideo.preload = 'auto';
+let _mainState = null; // チェック中に退避する通常解析の状態
+
+document.getElementById('btnCheckUpload').onclick = () => {
+  if (!analyzedPath) { alert('先に動画を解析してラインを作ってください'); return; }
+  document.getElementById('checkInput').value = '';
+  document.getElementById('checkInput').click();
+};
+
+document.getElementById('checkInput').onchange = () => {
+  const file = document.getElementById('checkInput').files[0];
+  if (!file) return;
+  // 通常解析の状態を退避（リプレイ用キャッシュ・動画時間）
+  _mainState = { cache: landmarkCache, dur: videoDuration };
+  analysisMode = 'check';
+  activeVideo = checkVideo;
+  seedPoint = null;
+  landmarkCache = [];
+  // 解析エリアをチェックカード内へ移動
+  const area = document.getElementById('analysisArea');
+  document.getElementById('checkHolder').appendChild(area);
+  document.getElementById('checkResult').style.display = 'none';
+  checkVideo.src = URL.createObjectURL(file);
+  checkVideo.onloadedmetadata = async () => {
+    videoDuration = checkVideo.duration;
+    try {
+      await loadPoseModel();
+      showSeedFrame();
+    } catch (err) {
+      alert('AIモデルの読み込みに失敗しました: ' + err.message);
+      restoreMainAnalysis();
+    }
+  };
+};
+
+function restoreMainAnalysis() {
+  analysisMode = 'main';
+  activeVideo = videoEl;
+  if (_mainState) {
+    landmarkCache = _mainState.cache;
+    videoDuration = _mainState.dur;
+    _mainState = null;
+  }
+  // 解析エリアを設計画面の「解析映像を見返す」へ戻す
+  const area = document.getElementById('analysisArea');
+  document.getElementById('replayHolder').appendChild(area);
+}
+
+/* 元カービング(analyzedPath.dense)とチェック走行の整合率を計算 */
+function processCheck(track) {
+  const checkDense = buildDense(track);
+  const orig = analyzedPath.dense;
+
+  // fy(0-1)の共通グリッドでxを再サンプリングし、それぞれ標準化して形の一致度を見る
+  function sampleX(dense, fy) {
+    if (fy <= dense[0].fy) return dense[0].x;
+    if (fy >= dense[dense.length-1].fy) return dense[dense.length-1].x;
+    let lo = 0, hi = dense.length - 1;
+    while (hi - lo > 1) { const m = (lo+hi)>>1; if (dense[m].fy < fy) lo = m; else hi = m; }
+    const span = dense[hi].fy - dense[lo].fy;
+    const t = span > 1e-9 ? (fy - dense[lo].fy)/span : 0;
+    return dense[lo].x + (dense[hi].x - dense[lo].x)*t;
+  }
+  const N = 100;
+  const a = [], b = [];
+  for (let k = 0; k < N; k++) {
+    const fy = k/(N-1);
+    a.push(sampleX(orig, fy));
+    b.push(sampleX(checkDense, fy));
+  }
+  const mean = arr => arr.reduce((s,v)=>s+v,0)/arr.length;
+  const ma = mean(a), mb = mean(b);
+  let cov = 0, va = 0, vb = 0;
+  for (let k = 0; k < N; k++) {
+    cov += (a[k]-ma)*(b[k]-mb);
+    va += (a[k]-ma)**2;
+    vb += (b[k]-mb)**2;
+  }
+  const corr = (va > 1e-9 && vb > 1e-9) ? cov/Math.sqrt(va*vb) : 0;
+  const score = Math.round(Math.max(0, corr) * 100);
+
+  const msg = score >= 85 ? '🎉 ほぼ設計どおりに滑れています！'
+            : score >= 60 ? '👍 概ね一致。ステップ部分で少しずれがあるかもしれません'
+            : '🔍 ずれが大きめです。ステップの入れ方やカービングの深さを見直してみましょう';
+  const res = document.getElementById('checkResult');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div style="text-align:center;padding:14px;border-radius:16px;background:rgba(255,255,255,.5);">
+      <div style="font-size:11px;letter-spacing:.18em;color:var(--ink-3);font-weight:700;">整合率</div>
+      <div style="font-size:44px;font-weight:700;color:${score>=85?'var(--cool-deep)':score>=60?'var(--warm-deep)':'#C05840'};line-height:1.2;">${score}<span style="font-size:18px;">%</span></div>
+      <div style="font-size:12.5px;color:var(--ink-2);margin-top:4px;">${msg}</div>
+    </div>`;
+  restoreMainAnalysis();
 }
 
 renderSideEditor();
