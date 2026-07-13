@@ -366,6 +366,12 @@
         <button class="regen" id="btnReAnalyze">別の動画を解析</button>
       </div>
       <svg id="designSvg" viewBox="0 0 720 980" aria-label="ライン設計図（俯瞰）"></svg>
+
+      <div id="stepVideos" style="display:none;margin-top:16px;">
+        <div class="step-num" style="margin-bottom:8px;">Step Videos</div>
+        <div id="stepVideoList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
       <div class="picker" id="picker" style="display:none;">
         <div class="picker-head">
           <span id="pickerTitle" class="picker-title"></span>
@@ -725,6 +731,50 @@ ALL_STEPS = buildAllSteps();
    MY STEPS — できるステップのフィルタ（自動保存）
    ============================================================ */
 const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
+
+/* ============================================================
+   STEP VIDEOS — 実写のステップ撮影動画をアプリ内でプレビューする。
+   3D変換ではなく、撮影素材をそのまま videos/ フォルダに置いて参照する方式。
+   キー = ステップのベース名（スイッチ版は同じ動画を左右反転して流用）
+   動画を増やすときは videos/ に <ベース名>.mp4 を置いてここに追記するだけでよい。
+   ============================================================ */
+const STEP_VIDEOS = {
+  // 暫定: cross_step.mp4 は BW/TS どちらのクロスステップかご確認ください（同じ動画を仮で両方に割当）
+  'BWクロスステップ': 'videos/クロスステップ.mp4',
+  'TSクロスステップ': 'videos/クロスステップ.mp4',
+};
+
+function renderStepVideos() {
+  const wrap = document.getElementById('stepVideos');
+  const list = document.getElementById('stepVideoList');
+  const sorted = assignments.slice().sort((a,b) => a.seg - b.seg);
+  const items = sorted.map((a, k) => ({ label: `${k+1}. ${a.name}`, name: a.name }));
+  if (finishTrick) items.push({ label: `FINISH: ${finishTrick}`, name: finishTrick });
+
+  if (!items.length) { wrap.style.display = 'none'; list.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+
+  list.innerHTML = items.map(it => {
+    const base = baseName(it.name);
+    const src = STEP_VIDEOS[base];
+    const isSwitch = it.name.startsWith('スイッチ') || it.name.startsWith('FK');
+    if (src) {
+      return `<div class="card" style="padding:12px;">
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:8px;">${it.label}</div>
+        <video src="${src}" controls playsinline preload="metadata"
+          style="width:100%;border-radius:12px;display:block;${isSwitch ? 'transform:scaleX(-1);' : ''}"></video>
+        ${isSwitch ? '<p style="font-size:10.5px;color:var(--ink-3);margin-top:5px;">※ スイッチ/フェイキー版のため映像を左右反転して表示しています</p>' : ''}
+      </div>`;
+    }
+    return `<div class="card" style="padding:14px;display:flex;align-items:center;gap:10px;">
+      <div style="width:44px;height:44px;border-radius:10px;background:rgba(94,140,167,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎬</div>
+      <div>
+        <div style="font-size:12.5px;font-weight:700;">${it.label}</div>
+        <div style="font-size:10.5px;color:var(--ink-3);">動画準備中</div>
+      </div>
+    </div>`;
+  }).join('');
+}
 let masteredSteps = new Set(RAW_STEPS.map(s => s.name)); // 初期値: 全て
 {
   const saved = stGet('stem_my_steps');
@@ -1220,6 +1270,7 @@ function renderDesign(animate = false) {
 
   // 動画枠カラム
   renderVideoBoxes(svg);
+  renderStepVideos();
 
   // イベント
   bindSvgEvents(svg, pathEl, totalLen, pointAtFy);
