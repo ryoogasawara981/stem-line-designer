@@ -744,10 +744,10 @@ const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
    → index.html の変更は不要。manifest.json の1行追記だけで動画が有効になる。
    例外的に別名ファイルを使うステップだけ VIDEO_ALIASES に登録する。 */
 const VIDEO_ALIASES = {
-  'BWクロスステップ': 'クロスステップ',
-  'TSクロスステップ': 'クロスステップ',
+  // BW/TSクロスステップは専用の撮影素材が揃ったため、現在は例外なし
+  // （以前はどちらも汎用の「クロスステップ」動画で代用していたが、専用動画に差し替え済み）
 };
-let VIDEO_FILES = new Set(['クロスステップ']); // フォールバック（manifest読込前/失敗時）
+let VIDEO_FILES = new Set(['クロスステップ', 'BWクロスステップ', 'TSクロスステップ']); // フォールバック（manifest読込前/失敗時）
 
 fetch('videos/manifest.json')
   .then(r => r.ok ? r.json() : null)
@@ -1319,7 +1319,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
   // HTMLオーバーレイ(%座標でviewBoxスケーリングに追従)
   overlay.innerHTML = items.map(it => {
     const src = hasVideo(it.name) ? videoSrc(it.name) : null;
-    const isSwitch = it.name.startsWith('スイッチ') || it.name.startsWith('FK');
+    const isSwitch = it.name.startsWith('スイッチ'); // FK版は専用撮影素材のため反転しない
     const h = boxH(it);
     const topPct = (it.y - h/2) / SVG_H * 100;
     const leftPct = BOX_X / SVG_W * 100;
@@ -1515,7 +1515,7 @@ function showPickerPreview(stepName) {
   if (!stepName) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
   if (!hasVideo(stepName)) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
   const src = videoSrc(stepName);
-  const isSwitch = stepName.startsWith('スイッチ') || stepName.startsWith('FK');
+  const isSwitch = stepName.startsWith('スイッチ'); // FK版は専用撮影素材のため反転しない
   pv.style.display = 'block';
   pv.innerHTML = `
     <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${stepName} のプレビュー</div>
