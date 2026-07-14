@@ -249,6 +249,16 @@
 </head>
 <body>
 <div class="wrap">
+<div id="videoModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(26,29,33,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="width:100%;max-width:520px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span id="videoModalTitle" style="color:#fff;font-size:15px;font-weight:700;font-family:var(--font);"></span>
+      <button id="videoModalClose" style="border:none;background:rgba(255,255,255,.18);color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <video id="videoModalPlayer" playsinline controls muted loop
+      style="width:100%;border-radius:14px;display:block;background:#000;max-height:70vh;"></video>
+  </div>
+</div>
 
   <div id="pwaBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:16px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);font-size:12.5px;color:var(--ink-2);align-items:center;gap:10px;">
     <span id="pwaBannerText" style="flex:1;"></span>
@@ -1357,10 +1367,15 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
     const wPct = BOX_W / SVG_W * 100;
     const border = it.finish ? 'border:1.5px solid #3E6A85;' : 'border:1px solid rgba(62,106,133,0.22);';
     if (src) {
-      return `<div id="${it.key}" class="side-vbox" data-seg="${it.seg}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;background:rgba(255,255,255,0.82);${border}border-radius:10px;padding:5px 6px 6px;box-shadow:0 6px 18px rgba(62,106,133,0.12);">
+      return `<div id="${it.key}" class="side-vbox vbox-tappable" data-seg="${it.seg}" data-video="${src}" data-mirror="${mirror ? 1 : 0}" data-title="${it.label}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;cursor:pointer;background:rgba(255,255,255,0.82);${border}border-radius:10px;padding:5px 6px 6px;box-shadow:0 6px 18px rgba(62,106,133,0.12);">
         <div style="font-size:9.5px;font-weight:700;color:${it.finish ? '#3E6A85' : '#2A3138'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">${it.label}</div>
-        <video src="${src}" muted loop autoplay playsinline
-          style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>
+        <div style="position:relative;">
+          <video src="${src}" muted playsinline preload="metadata"
+            style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+            <span style="width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;">▶</span>
+          </div>
+        </div>
       </div>`;
     }
     return `<div id="${it.key}" class="side-vbox" data-seg="${it.seg}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;background:rgba(255,255,255,0.78);${border}border-radius:10px;padding:7px 9px;display:flex;align-items:center;gap:7px;">
@@ -1384,6 +1399,33 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
       <text x="${VIDEO_X + 100}" y="${SVG_H/2 + 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ここに動画が並びます</text>`;
   }
   svg.querySelector('#videoBoxes').innerHTML = leaders;
+
+  // サイドボックスをタップ → モーダルで大きく表示
+  overlay.querySelectorAll('.vbox-tappable').forEach(box => {
+    box.onclick = () => openVideoModal(box.dataset.video, box.dataset.mirror === '1', box.dataset.title);
+  });
+}
+
+/* ============================================================
+   VIDEO MODAL — タップ/再生中のステップ動画を大きく表示する
+   ============================================================ */
+function openVideoModal(src, mirror, title) {
+  const modal = document.getElementById('videoModal');
+  const player = document.getElementById('videoModalPlayer');
+  document.getElementById('videoModalTitle').textContent = title || '';
+  player.style.transform = mirror ? 'scaleX(-1)' : 'none';
+  if (player.src !== src) player.src = src;
+  player.loop = true;
+  player.muted = true;
+  modal.style.display = 'flex';
+  try { player.currentTime = 0; } catch(e) {}
+  player.play().catch(() => {});
+}
+function closeVideoModal() {
+  const modal = document.getElementById('videoModal');
+  const player = document.getElementById('videoModalPlayer');
+  player.pause();
+  modal.style.display = 'none';
 }
 
 /* ============================================================
@@ -1429,6 +1471,11 @@ function bindSvgEvents(svg, pathEl, totalLen, pointAtFy) {
           _clickState = null;
           selected = { type:'seg', i: segIdx };
           renderDesign(); renderPicker();
+          // このセグメントに配置されたステップに動画があれば大きく表示
+          const a = assignments.find(x => x.seg === segIdx);
+          if (a && hasVideo(a.name)) {
+            openVideoModal(videoSrc(a.name), shouldMirrorVideo(a.name), a.name);
+          }
         }, 300)
       };
     };
@@ -1742,13 +1789,13 @@ function playLine() {
   const totalLen = path.getTotalLength();
 
   // iOS等の自動再生制約対策: この関数はボタンタップの同期チェーン内で呼ばれるため、
-  // ここで全動画に一度 play() を発行して「ユーザー操作由来の再生許可」を取得しておく。
-  // 直後に各動画は pause() されるが、一度許可されたメディアは以後スクリプトから再生できる。
-  document.querySelectorAll('#videoOverlay video').forEach(v => {
-    v.muted = true;
-    const p = v.play();
-    if (p && p.then) p.then(() => v.pause()).catch(() => {});
-  });
+  // ここでモーダルプレーヤーに一度 play() を発行して「ユーザー操作由来の再生許可」を取得しておく。
+  {
+    const mp = document.getElementById('videoModalPlayer');
+    mp.muted = true;
+    const p = mp.play();
+    if (p && p.then) p.then(() => mp.pause()).catch(() => {});
+  }
 
   const sorted = assignments.slice().sort((a,b) => a.seg - b.seg);
 
@@ -1758,12 +1805,14 @@ function playLine() {
       el: document.getElementById('vbox-' + k),
       leader: svg.querySelector('#leader-vbox-' + k),
       video: document.getElementById('vbox-' + k)?.querySelector('video') || null,
+      name: a.name,
     };
   });
   const finishBox = {
     el: document.getElementById('vbox-finish'),
     leader: svg.querySelector('#leader-vbox-finish'),
     video: document.getElementById('vbox-finish')?.querySelector('video') || null,
+    name: finishTrick,
   };
 
   // 再生プラン: セグメント順。動画があるステップは尺をタイマーではなく
@@ -1799,10 +1848,11 @@ function playLine() {
     if (b.el) b.el.style.outline = 'none';
   }
   function restoreAll() {
+    // 再生後は全ての動画を停止して静止状態に戻す（最後のステップだけがループする問題の解消）
     allBoxes.forEach(b => {
       if (b.el) { b.el.style.opacity = '1'; b.el.style.outline = 'none'; }
       if (b.leader) b.leader.setAttribute('opacity', 1);
-      if (b.video) { b.video.loop = true; b.video.play().catch(() => {}); }
+      if (b.video) { b.video.loop = false; b.video.pause(); try { b.video.currentTime = 0; } catch(e) {} }
     });
   }
 
@@ -1813,12 +1863,18 @@ function playLine() {
     return new Promise(resolve => {
       const box = boxOf[st.boxSeg];
       showBox(box);
-      const v = box.video;
-      if (!v) { animateByTime(st, 2500).then(resolve); return; }
+      if (!hasVideo(box.name)) { animateByTime(st, 2500).then(resolve); return; }
 
-      // このセグメントの動画だけを先頭から再生する
+      // 再生中は「今のステップ」をモーダルの大きいプレーヤーで表示する
+      const modal = document.getElementById('videoModal');
+      const v = document.getElementById('videoModalPlayer');
+      document.getElementById('videoModalTitle').textContent = box.name;
+      v.style.transform = shouldMirrorVideo(box.name) ? 'scaleX(-1)' : 'none';
+      v.loop = false; v.muted = true;
+      const srcNow = videoSrc(box.name);
+      if (v.src !== location.origin + '/' + srcNow && !v.src.endsWith(srcNow)) v.src = srcNow;
+      modal.style.display = 'flex';
       try { v.currentTime = 0; } catch(e) {}
-      v.loop = false;
       const playPromise = v.play();
       if (playPromise && playPromise.catch) playPromise.catch(() => {});
 
@@ -1840,7 +1896,6 @@ function playLine() {
       v.addEventListener('ended', onEnded);
 
       const step = (now) => {
-        // 進捗は「動画の再生位置」を優先、取れなければ経過時間で代替
         let p;
         if (isFinite(v.duration) && v.duration > 0.2 && v.currentTime > 0) {
           p = Math.min(v.currentTime / v.duration, 1);
@@ -1848,7 +1903,6 @@ function playLine() {
           p = Math.min((now - t0) / (durSec * 1000), 1);
         }
         path.setAttribute('stroke-dashoffset', totalLen * (1 - (st.f0 + (st.f1 - st.f0) * p)));
-        // 経過時間が動画尺を超えたら（endedが来ない端末でも）確実に前進する
         if (p >= 1 || (now - t0) >= durSec * 1000 + 250) { finish(); return; }
         raf = requestAnimationFrame(step);
       };
@@ -1890,19 +1944,27 @@ function playLine() {
     overlays.forEach(el => el.setAttribute('opacity', 1));
     if (finishBox.el) {
       showBox(finishBox);
-      if (finishBox.video) {
+      if (finishBox.name && hasVideo(finishBox.name)) {
         await new Promise(resolve => {
-          const v = finishBox.video;
+          const v = document.getElementById('videoModalPlayer');
+          document.getElementById('videoModalTitle').textContent = 'FINISH: ' + finishBox.name;
+          v.style.transform = shouldMirrorVideo(finishBox.name) ? 'scaleX(-1)' : 'none';
+          v.loop = false; v.muted = true;
+          const s = videoSrc(finishBox.name);
+          if (!v.src.endsWith(s)) v.src = s;
+          document.getElementById('videoModal').style.display = 'flex';
           const onEnded = () => { v.removeEventListener('ended', onEnded); resolve(); };
           v.addEventListener('ended', onEnded);
           try { v.currentTime = 0; } catch(e) {}
           const p = v.play();
           if (p && p.catch) p.catch(() => resolve());
+          setTimeout(resolve, 6000); // 保険
         });
       } else {
         await new Promise(r => setTimeout(r, 800));
       }
     }
+    closeVideoModal(); // 再生終了でモーダルを閉じる
     restoreAll();
     animating = false;
   }
@@ -2847,6 +2909,12 @@ function processCheck(track) {
 renderSideEditor();
 renderMySteps();
 renderSavedLines();
+
+// 動画モーダルの閉じる操作
+document.getElementById('videoModalClose').onclick = closeVideoModal;
+document.getElementById('videoModal').onclick = (e) => {
+  if (e.target.id === 'videoModal') closeVideoModal(); // 背景タップで閉じる
+};
 
 /* ============================================================
    PWA インストール案内
