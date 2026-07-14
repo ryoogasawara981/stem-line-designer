@@ -245,20 +245,24 @@
   #modelLoading, #analysisArea { margin-top: 14px; }
   #overlayCanvas { border-radius: 18px !important; border: 1px solid var(--glass-border) !important; box-shadow: 0 16px 50px rgba(62,106,133,.16); }
   svg text { font-family: var(--font); }
+  .side-vbox { transition: transform .25s ease, box-shadow .25s ease; transform-origin: right center; }
+  .side-vbox.expanded {
+    transform: scale(2.15);
+    z-index: 60;
+    box-shadow: 0 18px 50px rgba(26,29,33,.35) !important;
+  }
+  .side-vbox .vbox-close {
+    display: none; position: absolute; top: 3px; right: 3px;
+    width: 16px; height: 16px; border-radius: 50%; border: none;
+    background: rgba(0,0,0,.55); color: #fff; font-size: 10px; line-height: 1;
+    cursor: pointer; padding: 0; align-items: center; justify-content: center;
+  }
+  .side-vbox.expanded .vbox-close { display: flex; }
+  .side-vbox.expanded .vbox-playmark { display: none !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
-<div id="videoModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(26,29,33,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
-  <div style="width:100%;max-width:520px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <span id="videoModalTitle" style="color:#fff;font-size:15px;font-weight:700;font-family:var(--font);"></span>
-      <button id="videoModalClose" style="border:none;background:rgba(255,255,255,.18);color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1;">×</button>
-    </div>
-    <video id="videoModalPlayer" playsinline controls muted loop
-      style="width:100%;border-radius:14px;display:block;background:#000;max-height:70vh;"></video>
-  </div>
-</div>
 
   <div id="pwaBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:16px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);font-size:12.5px;color:var(--ink-2);align-items:center;gap:10px;">
     <span id="pwaBannerText" style="flex:1;"></span>
@@ -1367,12 +1371,13 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
     const wPct = BOX_W / SVG_W * 100;
     const border = it.finish ? 'border:1.5px solid #3E6A85;' : 'border:1px solid rgba(62,106,133,0.22);';
     if (src) {
-      return `<div id="${it.key}" class="side-vbox vbox-tappable" data-seg="${it.seg}" data-video="${src}" data-mirror="${mirror ? 1 : 0}" data-title="${it.label}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;cursor:pointer;background:rgba(255,255,255,0.82);${border}border-radius:10px;padding:5px 6px 6px;box-shadow:0 6px 18px rgba(62,106,133,0.12);">
+      return `<div id="${it.key}" class="side-vbox vbox-tappable" data-seg="${it.seg}" data-video="${src}" data-mirror="${mirror ? 1 : 0}" data-title="${it.label}" data-name="${it.name}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;cursor:pointer;background:rgba(255,255,255,0.82);${border}border-radius:10px;padding:5px 6px 6px;box-shadow:0 6px 18px rgba(62,106,133,0.12);">
+        <button class="vbox-close">×</button>
         <div style="font-size:9.5px;font-weight:700;color:${it.finish ? '#3E6A85' : '#2A3138'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">${it.label}</div>
         <div style="position:relative;">
           <video src="${src}" muted playsinline preload="metadata"
             style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <div class="vbox-playmark" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
             <span style="width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;">▶</span>
           </div>
         </div>
@@ -1400,32 +1405,41 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
   }
   svg.querySelector('#videoBoxes').innerHTML = leaders;
 
-  // サイドボックスをタップ → モーダルで大きく表示
+  // サイドボックスをタップ → その場で拡大して再生
   overlay.querySelectorAll('.vbox-tappable').forEach(box => {
-    box.onclick = () => openVideoModal(box.dataset.video, box.dataset.mirror === '1', box.dataset.title);
+    const video = box.querySelector('video');
+    box.onclick = (e) => {
+      if (e.target.classList.contains('vbox-close')) { collapseBox(box); return; }
+      if (box.classList.contains('expanded')) return; // 拡大中の再タップは無視（閉じるは×で）
+      expandBox(box);
+    };
   });
 }
 
 /* ============================================================
-   VIDEO MODAL — タップ/再生中のステップ動画を大きく表示する
+   VIDEO BOX 拡大 — タップしたボックスをその場で大きくして再生する
+   （全画面モーダルにはしない。背景も暗くしない）
    ============================================================ */
-function openVideoModal(src, mirror, title) {
-  const modal = document.getElementById('videoModal');
-  const player = document.getElementById('videoModalPlayer');
-  document.getElementById('videoModalTitle').textContent = title || '';
-  player.style.transform = mirror ? 'scaleX(-1)' : 'none';
-  if (player.src !== src) player.src = src;
-  player.loop = true;
-  player.muted = true;
-  modal.style.display = 'flex';
-  try { player.currentTime = 0; } catch(e) {}
-  player.play().catch(() => {});
+let _expandedBox = null;
+function expandBox(box) {
+  if (_expandedBox && _expandedBox !== box) collapseBox(_expandedBox);
+  _expandedBox = box;
+  box.classList.add('expanded');
+  const v = box.querySelector('video');
+  if (v) { v.loop = true; v.muted = true; try { v.currentTime = 0; } catch(e) {} v.play().catch(() => {}); }
 }
-function closeVideoModal() {
-  const modal = document.getElementById('videoModal');
-  const player = document.getElementById('videoModalPlayer');
-  player.pause();
-  modal.style.display = 'none';
+function collapseBox(box) {
+  if (!box) return;
+  box.classList.remove('expanded');
+  const v = box.querySelector('video');
+  if (v) { v.pause(); try { v.currentTime = 0; } catch(e) {} }
+  if (_expandedBox === box) _expandedBox = null;
+}
+/* セグメント名から対応するサイドボックスを拡大する（軌道タップ・再生時に使用） */
+function expandBoxBySeg(segKey) {
+  const box = document.querySelector(`.vbox-tappable[data-seg="${segKey}"]`);
+  if (box) expandBox(box);
+  return box;
 }
 
 /* ============================================================
@@ -1471,10 +1485,10 @@ function bindSvgEvents(svg, pathEl, totalLen, pointAtFy) {
           _clickState = null;
           selected = { type:'seg', i: segIdx };
           renderDesign(); renderPicker();
-          // このセグメントに配置されたステップに動画があれば大きく表示
+          // このセグメントに配置されたステップに動画があればサイドボックスを拡大
           const a = assignments.find(x => x.seg === segIdx);
           if (a && hasVideo(a.name)) {
-            openVideoModal(videoSrc(a.name), shouldMirrorVideo(a.name), a.name);
+            expandBoxBySeg(segIdx);
           }
         }, 300)
       };
@@ -1789,13 +1803,12 @@ function playLine() {
   const totalLen = path.getTotalLength();
 
   // iOS等の自動再生制約対策: この関数はボタンタップの同期チェーン内で呼ばれるため、
-  // ここでモーダルプレーヤーに一度 play() を発行して「ユーザー操作由来の再生許可」を取得しておく。
-  {
-    const mp = document.getElementById('videoModalPlayer');
-    mp.muted = true;
-    const p = mp.play();
-    if (p && p.then) p.then(() => mp.pause()).catch(() => {});
-  }
+  // ここで全サイドボックスの動画に一度 play() を発行して「ユーザー操作由来の再生許可」を取得する。
+  document.querySelectorAll('#videoOverlay video').forEach(v => {
+    v.muted = true;
+    const p = v.play();
+    if (p && p.then) p.then(() => v.pause()).catch(() => {});
+  });
 
   const sorted = assignments.slice().sort((a,b) => a.seg - b.seg);
 
@@ -1848,32 +1861,31 @@ function playLine() {
     if (b.el) b.el.style.outline = 'none';
   }
   function restoreAll() {
-    // 再生後は全ての動画を停止して静止状態に戻す（最後のステップだけがループする問題の解消）
+    // 再生後は全ての動画を停止し、拡大も解除して静止状態に戻す
+    if (_expandedBox) collapseBox(_expandedBox);
     allBoxes.forEach(b => {
-      if (b.el) { b.el.style.opacity = '1'; b.el.style.outline = 'none'; }
+      if (b.el) { b.el.style.opacity = '1'; b.el.style.outline = 'none'; b.el.classList.remove('expanded'); }
       if (b.leader) b.leader.setAttribute('opacity', 1);
       if (b.video) { b.video.loop = false; b.video.pause(); try { b.video.currentTime = 0; } catch(e) {} }
     });
   }
 
   /* 各セグメントを「動画の長さ分の時間」で進める。
-     iOS等ではendedイベントが来ない/autoplayと競合することがあるため、
-     endedに依存せず、動画の再生位置(currentTime)を優先しつつ経過時間でも進める二重管理にする。 */
+     再生中は該当ステップのサイドボックスをその場で拡大して見せる。 */
   function playVideoSegment(st) {
     return new Promise(resolve => {
       const box = boxOf[st.boxSeg];
       showBox(box);
-      if (!hasVideo(box.name)) { animateByTime(st, 2500).then(resolve); return; }
+      const v = box.video;
+      if (!hasVideo(box.name) || !v) { animateByTime(st, 2500).then(resolve); return; }
 
-      // 再生中は「今のステップ」をモーダルの大きいプレーヤーで表示する
-      const modal = document.getElementById('videoModal');
-      const v = document.getElementById('videoModalPlayer');
-      document.getElementById('videoModalTitle').textContent = box.name;
-      v.style.transform = shouldMirrorVideo(box.name) ? 'scaleX(-1)' : 'none';
+      // 直前の拡大を畳んで、今のステップのボックスを拡大表示
+      if (box.el) {
+        if (_expandedBox && _expandedBox !== box.el) collapseBox(_expandedBox);
+        box.el.classList.add('expanded');
+        _expandedBox = box.el;
+      }
       v.loop = false; v.muted = true;
-      const srcNow = videoSrc(box.name);
-      if (v.src !== location.origin + '/' + srcNow && !v.src.endsWith(srcNow)) v.src = srcNow;
-      modal.style.display = 'flex';
       try { v.currentTime = 0; } catch(e) {}
       const playPromise = v.play();
       if (playPromise && playPromise.catch) playPromise.catch(() => {});
@@ -1890,6 +1902,9 @@ function playLine() {
         path.setAttribute('stroke-dashoffset', totalLen * (1 - st.f1));
         settleBox(box);
         finishStepOverlay(st);
+        // このステップの拡大を畳む（次のステップで次のボックスが拡大する）
+        if (box.el) { box.el.classList.remove('expanded'); if (_expandedBox === box.el) _expandedBox = null; }
+        v.pause(); try { v.currentTime = 0; } catch(e) {}
         resolve();
       };
       const onEnded = () => finish();
@@ -1944,19 +1959,17 @@ function playLine() {
     overlays.forEach(el => el.setAttribute('opacity', 1));
     if (finishBox.el) {
       showBox(finishBox);
-      if (finishBox.name && hasVideo(finishBox.name)) {
+      const fv = finishBox.video;
+      if (finishBox.name && hasVideo(finishBox.name) && fv) {
         await new Promise(resolve => {
-          const v = document.getElementById('videoModalPlayer');
-          document.getElementById('videoModalTitle').textContent = 'FINISH: ' + finishBox.name;
-          v.style.transform = shouldMirrorVideo(finishBox.name) ? 'scaleX(-1)' : 'none';
-          v.loop = false; v.muted = true;
-          const s = videoSrc(finishBox.name);
-          if (!v.src.endsWith(s)) v.src = s;
-          document.getElementById('videoModal').style.display = 'flex';
-          const onEnded = () => { v.removeEventListener('ended', onEnded); resolve(); };
-          v.addEventListener('ended', onEnded);
-          try { v.currentTime = 0; } catch(e) {}
-          const p = v.play();
+          if (_expandedBox && _expandedBox !== finishBox.el) collapseBox(_expandedBox);
+          finishBox.el.classList.add('expanded');
+          _expandedBox = finishBox.el;
+          fv.loop = false; fv.muted = true;
+          const onEnded = () => { fv.removeEventListener('ended', onEnded); resolve(); };
+          fv.addEventListener('ended', onEnded);
+          try { fv.currentTime = 0; } catch(e) {}
+          const p = fv.play();
           if (p && p.catch) p.catch(() => resolve());
           setTimeout(resolve, 6000); // 保険
         });
@@ -1964,7 +1977,6 @@ function playLine() {
         await new Promise(r => setTimeout(r, 800));
       }
     }
-    closeVideoModal(); // 再生終了でモーダルを閉じる
     restoreAll();
     animating = false;
   }
@@ -2909,12 +2921,6 @@ function processCheck(track) {
 renderSideEditor();
 renderMySteps();
 renderSavedLines();
-
-// 動画モーダルの閉じる操作
-document.getElementById('videoModalClose').onclick = closeVideoModal;
-document.getElementById('videoModal').onclick = (e) => {
-  if (e.target.id === 'videoModal') closeVideoModal(); // 背景タップで閉じる
-};
 
 /* ============================================================
    PWA インストール案内
