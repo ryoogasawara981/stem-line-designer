@@ -2124,6 +2124,11 @@ function renderSideEditor() {
    ============================================================ */
 const videoEl = document.createElement('video');
 videoEl.muted = true; videoEl.playsInline = true; videoEl.preload = 'auto';
+// iOS SafariはプロパティだけでなくHTML属性が無いとインライン処理を始めないことがあるため明示
+videoEl.setAttribute('muted', '');
+videoEl.setAttribute('playsinline', '');
+videoEl.setAttribute('webkit-playsinline', '');
+videoEl.setAttribute('preload', 'auto');
 let activeVideo = videoEl;   // 解析対象の動画（滑走チェック時は別のvideo要素に切り替わる）
 let analysisMode = 'main';   // 'main' = 通常解析 / 'check' = 滑走チェック
 let videoDuration = 0;
@@ -2155,10 +2160,20 @@ videoInput.onchange = () => {
   activeVideo = videoEl;
   seedPoint = null;
   landmarkCache = [];
-  videoEl.src = URL.createObjectURL(file);
-  videoEl.onloadedmetadata = async () => {
-    videoDuration = videoEl.duration;
-    document.getElementById('modelLoading').style.display = 'block';
+  document.getElementById('modelLoading').style.display = 'block';
+  document.getElementById('modelStatus').textContent = '📼 動画を読み込み中...';
+
+  // iOS Safari等ではloadedmetadataが発火しない/取りこぼすことがあるため、
+  // イベント＋タイムアウトの二段構えで、必ず一度だけ解析を開始する。
+  let started = false;
+  const begin = async () => {
+    if (started) return;
+    if (!videoEl.videoWidth) {
+      // まだ寸法が取れていない場合はもう少し待つ（最大4秒までのポーリング側で再試行）
+      return;
+    }
+    started = true;
+    videoDuration = videoEl.duration || 0;
     try {
       await loadPoseModel();
       document.getElementById('modelLoading').style.display = 'none';
@@ -2168,6 +2183,22 @@ videoInput.onchange = () => {
         'AIモデルの読み込みに失敗しました。ネット接続を確認してください。(' + err.message + ')';
     }
   };
+  videoEl.addEventListener('loadedmetadata', begin, { once: true });
+  videoEl.addEventListener('loadeddata', begin, { once: true });
+  // 保険: イベントが来ない環境向けに、寸法が取れ次第開始するポーリング（最大~5秒）
+  let tries = 0;
+  const poll = setInterval(() => {
+    tries++;
+    if (started || videoEl.videoWidth) { clearInterval(poll); begin(); }
+    else if (tries > 25) {
+      clearInterval(poll);
+      if (!started) document.getElementById('modelStatus').textContent =
+        '動画を読み込めませんでした。もう一度お試しいただくか、別の動画（mp4推奨）でお試しください。';
+    }
+  }, 200);
+
+  videoEl.src = URL.createObjectURL(file);
+  videoEl.load(); // iOSでは明示的なload()呼び出しが読み込み開始のトリガーになる
 };
 
 /* 最初のフレームで人物をクリックしてもらい、追跡の起点にする */
@@ -2182,14 +2213,19 @@ async function showSeedFrame() {
   const octx = ov.getContext('2d');
 
   // 初回アップロード時、メタデータ直後はフレーム未デコードで真っ白になるため
-  // データ到達(readyState>=2)を待ってから描く
+  // データ到達(readyState>=2)を待ってから描く（ただし永久待ちを避けるためタイムアウト付き）
   if (activeVideo.readyState < 2) {
-    await new Promise(r => activeVideo.addEventListener('loadeddata', r, { once: true }));
+    await new Promise(r => {
+      let done = false;
+      const fin = () => { if (!done) { done = true; r(); } };
+      activeVideo.addEventListener('loadeddata', fin, { once: true });
+      setTimeout(fin, 2000); // 2秒で来なければ先へ進む（スマホでdrawImage保険が効く）
+    });
   }
   await seekTo(0.05);
 
   const drawSeed = () => {
-    octx.drawImage(activeVideo, 0, 0, ov.width, ov.height);
+    try { octx.drawImage(activeVideo, 0, 0, ov.width, ov.height); } catch (e) {}
     octx.fillStyle = 'rgba(0,0,0,0.55)';
     octx.fillRect(0, 0, ov.width, 34);
     octx.font = 'bold 15px sans-serif';
@@ -2197,19 +2233,32 @@ async function showSeedFrame() {
     octx.fillText('👆 スケーター（人物）をタップしてください', 12, 23);
   };
   drawSeed();
-  setTimeout(drawSeed, 350); // デコード遅延の保険（初回でも確実に映るように再描画）
+  setTimeout(drawSeed, 350);  // デコード遅延の保険
+  setTimeout(drawSeed, 900);  // スマホ向けにもう一段の保険
   document.getElementById('progressText').textContent = '最初のフレームで人物の位置を指定すると、追跡精度が上がります';
   document.getElementById('progressBar').style.width = '0%';
 
   ov.style.cursor = 'crosshair';
-  ov.onclick = (e) => {
+  let seedDone = false;
+  const onSeed = (clientX, clientY) => {
+    if (seedDone) return;
+    seedDone = true;
     const rect = ov.getBoundingClientRect();
-    const nx = (e.clientX - rect.left) / rect.width;
-    const ny = (e.clientY - rect.top) / rect.height;
+    const nx = (clientX - rect.left) / rect.width;
+    const ny = (clientY - rect.top) / rect.height;
     seedPoint = { x: nx, y: ny };
     ov.onclick = null;
+    ov.ontouchend = null;
     ov.style.cursor = 'default';
     analyzeVideo();
+  };
+  ov.onclick = (e) => onSeed(e.clientX, e.clientY);
+  // タッチ端末では click が発火しにくい/遅延することがあるため touchend も拾う
+  ov.ontouchend = (e) => {
+    if (e.changedTouches && e.changedTouches.length) {
+      e.preventDefault();
+      onSeed(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }
   };
 }
 
