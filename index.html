@@ -309,6 +309,7 @@
         </div>
       </div>
       <div class="choice-chips" id="myStepsChips" style="max-height:300px;"></div>
+      <div id="myStepsPreview" style="display:none;margin-top:12px;"></div>
     </div>
 
     <div class="card" style="margin-top:16px;">
@@ -777,6 +778,19 @@ let masteredSteps = new Set(RAW_STEPS.map(s => s.name)); // 初期値: 全て
 }
 function saveMySteps() { stSet('stem_my_steps', [...masteredSteps]); }
 
+/* マイステップ画面の確認用プレビュー(ピッカーと同じ単発表示。積み重ねない) */
+function showMyStepsPreview(stepName) {
+  const pv = document.getElementById('myStepsPreview');
+  if (!hasVideo(stepName)) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
+  const src = videoSrc(stepName);
+  const isSwitch = stepName.startsWith('スイッチ');
+  pv.style.display = 'block';
+  pv.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${stepName} のプレビュー</div>
+    <video src="${src}" muted loop autoplay playsinline controls
+      style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${isSwitch ? 'transform:scaleX(-1);' : ''}"></video>`;
+}
+
 function renderMySteps() {
   const box = document.getElementById('myStepsChips');
   box.innerHTML = '';
@@ -784,7 +798,16 @@ function renderMySteps() {
     const c = document.createElement('span');
     const on = masteredSteps.has(s.name);
     c.className = 'cchip' + (on ? ' on' : '');
-    c.innerHTML = `${s.name}<span class="lv">${s.level}</span>`;
+    const vmark = hasVideo(s.name)
+      ? `<span class="chip-play" title="動画プレビュー" style="margin-right:4px;cursor:pointer;">🎬</span>`
+      : '';
+    c.innerHTML = `${vmark}${s.name}<span class="lv">${s.level}</span>`;
+    if (hasVideo(s.name)) {
+      c.querySelector('.chip-play').onclick = (e) => {
+        e.stopPropagation(); // チップ本体のトグルを発火させない
+        showMyStepsPreview(s.name);
+      };
+    }
     c.onclick = () => {
       if (masteredSteps.has(s.name)) masteredSteps.delete(s.name);
       else masteredSteps.add(s.name);
