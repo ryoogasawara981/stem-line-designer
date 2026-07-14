@@ -766,6 +766,14 @@ function videoFileFor(stepName) {
 }
 function hasVideo(stepName) { return VIDEO_FILES.has(videoFileFor(stepName)); }
 function videoSrc(stepName) { return 'videos/' + videoFileFor(stepName) + '.mp4'; }
+/* 動画は全てレギュラースタンスで撮影しているため、
+   ①スイッチ版（元動画を使い回す）か、②現在のスタンスがグーフィーの場合は左右反転して表示する。
+   両方該当する場合（グーフィー中のスイッチ版）は反転が二重に打ち消し合い、結果的に反転なしになる。 */
+function shouldMirrorVideo(stepName) {
+  const isSwitchName = stepName.startsWith('スイッチ');
+  const isGoofy = stance === 'G';
+  return isSwitchName !== isGoofy; // XOR
+}
 
 /* renderStepVideos(下部積み重ね方式)は廃止。
    動画はrenderVideoBoxes(俯瞰図右カラム・位置連動)とピッカープレビューで表示する */
@@ -783,12 +791,12 @@ function showMyStepsPreview(stepName) {
   const pv = document.getElementById('myStepsPreview');
   if (!hasVideo(stepName)) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
   const src = videoSrc(stepName);
-  const isSwitch = stepName.startsWith('スイッチ');
+  const mirror = shouldMirrorVideo(stepName);
   pv.style.display = 'block';
   pv.innerHTML = `
     <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${stepName} のプレビュー</div>
     <video src="${src}" muted loop autoplay playsinline controls
-      style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${isSwitch ? 'transform:scaleX(-1);' : ''}"></video>`;
+      style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>`;
 }
 
 function renderMySteps() {
@@ -1342,7 +1350,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
   // HTMLオーバーレイ(%座標でviewBoxスケーリングに追従)
   overlay.innerHTML = items.map(it => {
     const src = hasVideo(it.name) ? videoSrc(it.name) : null;
-    const isSwitch = it.name.startsWith('スイッチ'); // FK版は専用撮影素材のため反転しない
+    const mirror = shouldMirrorVideo(it.name); // FK版は専用撮影素材のためスイッチ名では反転しない
     const h = boxH(it);
     const topPct = (it.y - h/2) / SVG_H * 100;
     const leftPct = BOX_X / SVG_W * 100;
@@ -1352,7 +1360,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
       return `<div id="${it.key}" class="side-vbox" data-seg="${it.seg}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;background:rgba(255,255,255,0.82);${border}border-radius:10px;padding:5px 6px 6px;box-shadow:0 6px 18px rgba(62,106,133,0.12);">
         <div style="font-size:9.5px;font-weight:700;color:${it.finish ? '#3E6A85' : '#2A3138'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">${it.label}</div>
         <video src="${src}" muted loop autoplay playsinline
-          style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#222;${isSwitch ? 'transform:scaleX(-1);' : ''}"></video>
+          style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>
       </div>`;
     }
     return `<div id="${it.key}" class="side-vbox" data-seg="${it.seg}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;background:rgba(255,255,255,0.78);${border}border-radius:10px;padding:7px 9px;display:flex;align-items:center;gap:7px;">
@@ -1538,12 +1546,12 @@ function showPickerPreview(stepName) {
   if (!stepName) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
   if (!hasVideo(stepName)) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
   const src = videoSrc(stepName);
-  const isSwitch = stepName.startsWith('スイッチ'); // FK版は専用撮影素材のため反転しない
+  const mirror = shouldMirrorVideo(stepName); // FK版は専用撮影素材のためスイッチ名では反転しない
   pv.style.display = 'block';
   pv.innerHTML = `
     <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${stepName} のプレビュー</div>
     <video src="${src}" muted loop autoplay playsinline controls
-      style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${isSwitch ? 'transform:scaleX(-1);' : ''}"></video>`;
+      style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>`;
 }
 
 function renderPicker() {
