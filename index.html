@@ -1733,6 +1733,15 @@ function playLine() {
   const bs = allBoundaries();
   const totalLen = path.getTotalLength();
 
+  // iOS等の自動再生制約対策: この関数はボタンタップの同期チェーン内で呼ばれるため、
+  // ここで全動画に一度 play() を発行して「ユーザー操作由来の再生許可」を取得しておく。
+  // 直後に各動画は pause() されるが、一度許可されたメディアは以後スクリプトから再生できる。
+  document.querySelectorAll('#videoOverlay video').forEach(v => {
+    v.muted = true;
+    const p = v.play();
+    if (p && p.then) p.then(() => v.pause()).catch(() => {});
+  });
+
   const sorted = assignments.slice().sort((a,b) => a.seg - b.seg);
 
   const boxOf = {};
@@ -1789,37 +1798,52 @@ function playLine() {
     });
   }
 
-  /* 動画つきセグメント: 動画のcurrentTime(実際の再生位置)で軌道を進め、
-     再生完了(endedイベント)が来た瞬間に次のセグメントへ進む。
-     タイマーでの見込み時間ではなく、実際の再生と1フレームもズレず同期する。 */
+  /* 各セグメントを「動画の長さ分の時間」で進める。
+     iOS等ではendedイベントが来ない/autoplayと競合することがあるため、
+     endedに依存せず、動画の再生位置(currentTime)を優先しつつ経過時間でも進める二重管理にする。 */
   function playVideoSegment(st) {
     return new Promise(resolve => {
       const box = boxOf[st.boxSeg];
       showBox(box);
       const v = box.video;
-      if (!v) { // 動画未登録ステップはプレースホルダー表示のまま2.5秒
-        animateByTime(st, 2500).then(resolve);
-        return;
-      }
+      if (!v) { animateByTime(st, 2500).then(resolve); return; }
+
+      // このセグメントの動画だけを先頭から再生する
+      try { v.currentTime = 0; } catch(e) {}
+      v.loop = false;
+      const playPromise = v.play();
+      if (playPromise && playPromise.catch) playPromise.catch(() => {});
+
+      const durSec = (isFinite(v.duration) && v.duration > 0.2) ? v.duration : 2.5;
+      const t0 = performance.now();
+      let finished = false;
       let raf;
-      const step = () => {
-        const dur = v.duration;
-        const p = (isFinite(dur) && dur > 0.05) ? Math.min(v.currentTime / dur, 1) : 0;
-        path.setAttribute('stroke-dashoffset', totalLen * (1 - (st.f0 + (st.f1 - st.f0) * p)));
-        raf = requestAnimationFrame(step);
-      };
-      const onEnded = () => {
+      const finish = () => {
+        if (finished) return;
+        finished = true;
         cancelAnimationFrame(raf);
         v.removeEventListener('ended', onEnded);
-        path.setAttribute('stroke-dashoffset', totalLen * (1 - st.f1)); // 確実に区間終端まで進める
+        path.setAttribute('stroke-dashoffset', totalLen * (1 - st.f1));
         settleBox(box);
         finishStepOverlay(st);
         resolve();
       };
+      const onEnded = () => finish();
       v.addEventListener('ended', onEnded);
-      try { v.currentTime = 0; } catch(e) {}
-      const playPromise = v.play();
-      if (playPromise && playPromise.catch) playPromise.catch(() => { onEnded(); }); // 再生失敗時も先へ進める
+
+      const step = (now) => {
+        // 進捗は「動画の再生位置」を優先、取れなければ経過時間で代替
+        let p;
+        if (isFinite(v.duration) && v.duration > 0.2 && v.currentTime > 0) {
+          p = Math.min(v.currentTime / v.duration, 1);
+        } else {
+          p = Math.min((now - t0) / (durSec * 1000), 1);
+        }
+        path.setAttribute('stroke-dashoffset', totalLen * (1 - (st.f0 + (st.f1 - st.f0) * p)));
+        // 経過時間が動画尺を超えたら（endedが来ない端末でも）確実に前進する
+        if (p >= 1 || (now - t0) >= durSec * 1000 + 250) { finish(); return; }
+        raf = requestAnimationFrame(step);
+      };
       raf = requestAnimationFrame(step);
     });
   }
