@@ -258,6 +258,8 @@
   }
   .side-vbox.expanded .vbox-close { display: flex; }
   .side-vbox.expanded .vbox-playmark { display: none !important; }
+  /* ライン再生中は▶マークを隠す（動画の上に重なって邪魔になるため） */
+  .playing-line .vbox-playmark { display: none !important; }
 </style>
 </head>
 <body>
@@ -1346,7 +1348,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
     items.push({ key: 'vbox-finish', label: `FINISH: ${finishTrick}`, name: finishTrick, seg: 'finish', anchorX: p.x, anchorY: p.y - 22, y: p.y - 22, finish: true });
   }
 
-  const BOX_W = 205, BOX_X = VIDEO_X;
+  const BOX_W = 256, BOX_X = 458; // 軌道はx=60〜440に描かれるため、458以降なら被らない最大幅
   // ボックス高さ: 動画あり=ラベル+16:9動画 / なし=コンパクト
   const boxH = it => (hasVideo(it.name) ? BOX_W * 9 / 16 + 26 : 48);
 
@@ -1413,8 +1415,8 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
       <circle cx="${it.anchorX + 10}" cy="${it.anchorY}" r="2.5" fill="${col}"/></g>`;
   });
   if (!items.length) {
-    leaders += `<text x="${VIDEO_X + 100}" y="${SVG_H/2 - 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ステップを選ぶと</text>
-      <text x="${VIDEO_X + 100}" y="${SVG_H/2 + 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ここに動画が並びます</text>`;
+    leaders += `<text x="${BOX_X + BOX_W/2}" y="${SVG_H/2 - 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ステップを選ぶと</text>
+      <text x="${BOX_X + BOX_W/2}" y="${SVG_H/2 + 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ここに動画が並びます</text>`;
   }
   svg.querySelector('#videoBoxes').innerHTML = leaders;
 
@@ -1828,6 +1830,9 @@ function playLine() {
   const bs = allBoundaries();
   const totalLen = path.getTotalLength();
 
+  // 再生中は▶マークを隠す（動画に重なって邪魔になるため）
+  document.getElementById('videoOverlay').classList.add('playing-line');
+
   // iOS等の自動再生制約対策: この関数はボタンタップの同期チェーン内で呼ばれるため、
   // ここで全サイドボックスの動画に一度 play() を発行して「ユーザー操作由来の再生許可」を取得する。
   document.querySelectorAll('#videoOverlay video').forEach(v => {
@@ -1888,6 +1893,7 @@ function playLine() {
   }
   function restoreAll() {
     // 再生後は全ての動画を停止し、拡大も解除して静止状態に戻す
+    document.getElementById('videoOverlay').classList.remove('playing-line');
     if (_expandedBox) collapseBox(_expandedBox);
     allBoxes.forEach(b => {
       if (b.el) { b.el.style.opacity = '1'; b.el.style.outline = 'none'; b.el.classList.remove('expanded'); }
@@ -2058,8 +2064,14 @@ document.getElementById('skipAnalysis').onclick = () => {
 };
 
 document.getElementById('btnReplay').onclick = () => {
-  // 再生ボタンは図の下にあるため、再生開始と同時に俯瞰図まで画面を移動する
-  document.getElementById('designSvg').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // 再生中は選択状態(薄い青のハイライト)を解除してから再生する
+  selected = null;
+  renderPicker();
+  // ボタンは俯瞰図の直上にあるため、ボタン行を含むカード全体が見える位置へ戻す
+  // （designSvg基準だと図の上部がボタンで隠れてしまう）
+  const card = document.getElementById('svgWrap').closest('.card') || document.getElementById('svgWrap');
+  const y = card.getBoundingClientRect().top + window.scrollY - 8;
+  window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
   renderDesign(true);
 };
 document.getElementById('btnUndo').onclick = () => undo();
