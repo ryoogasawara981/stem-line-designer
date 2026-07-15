@@ -245,9 +245,8 @@
   #modelLoading, #analysisArea { margin-top: 14px; }
   #overlayCanvas { border-radius: 18px !important; border: 1px solid var(--glass-border) !important; box-shadow: 0 16px 50px rgba(62,106,133,.16); }
   svg text { font-family: var(--font); }
-  .side-vbox { transition: transform .25s ease, box-shadow .25s ease; transform-origin: right center; }
+  .side-vbox { transition: left .25s ease, top .25s ease, width .25s ease, box-shadow .25s ease; }
   .side-vbox.expanded {
-    transform: scale(2.15);
     z-index: 60;
     box-shadow: 0 18px 50px rgba(26,29,33,.35) !important;
   }
@@ -263,6 +262,12 @@
 </head>
 <body>
 <div class="wrap">
+
+  <div id="seedOverlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(26,29,33,.94);flex-direction:column;align-items:center;justify-content:center;padding:14px;">
+    <p style="color:#fff;font-weight:700;font-size:15.5px;margin-bottom:12px;font-family:var(--font);text-align:center;line-height:1.5;">👆 スケーター（人物）をタップしてください<br><span style="font-size:11.5px;font-weight:400;opacity:.75;">最初のフレームで位置を指定すると追跡精度が上がります</span></p>
+    <canvas id="seedCanvas" style="max-width:96vw;max-height:72vh;width:auto;height:auto;border-radius:12px;cursor:crosshair;touch-action:none;"></canvas>
+    <button id="seedCancel" style="margin-top:16px;padding:10px 26px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-family:var(--font);font-size:13px;cursor:pointer;">キャンセル</button>
+  </div>
 
   <div id="pwaBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:16px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);font-size:12.5px;color:var(--ink-2);align-items:center;gap:10px;">
     <span id="pwaBannerText" style="flex:1;"></span>
@@ -380,6 +385,10 @@
         <span class="badge orange" id="modeBadge">YOUR LINE</span>
         <button class="regen" id="btnReAnalyze">別の動画を解析</button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="btn primary" id="btnReplay" style="padding:10px 18px;font-size:12.5px;flex:none;">▶ ラインを再生</button>
+        <button class="btn" id="btnUndo" style="padding:10px 18px;font-size:12.5px;flex:none;">↩ 戻す</button>
+      </div>
       <div id="svgWrap" style="position:relative;">
         <svg id="designSvg" viewBox="0 0 720 980" aria-label="ライン設計図（俯瞰）"></svg>
         <div id="videoOverlay" style="position:absolute;inset:0;pointer-events:none;"></div>
@@ -413,9 +422,7 @@
       </div>
     </div>
     <div class="gen-row">
-      <button class="btn primary" id="btnReplay">▶ ラインを再生</button>
       <button class="btn" id="btnRandomAll">🎲 ステップを全ておまかせ</button>
-      <button class="btn" id="btnUndo">↩ 戻す</button>
       <button class="btn" id="btnClear">リセット</button>
       <button class="btn" id="btnSaveLine">💾 ラインを保存</button>
     </div>
@@ -1383,10 +1390,16 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
         </div>
       </div>`;
     }
+    if (it.finish) {
+      // FINISHトリックは動画を用意しない方針のため、ラベルのみのシンプルな表示
+      return `<div id="${it.key}" class="side-vbox" data-seg="${it.seg}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;background:rgba(255,255,255,0.78);${border}border-radius:10px;padding:9px 10px;">
+        <span style="display:block;font-size:9.5px;font-weight:700;color:#3E6A85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${it.label}</span>
+      </div>`;
+    }
     return `<div id="${it.key}" class="side-vbox" data-seg="${it.seg}" style="position:absolute;left:${leftPct}%;top:${topPct}%;width:${wPct}%;pointer-events:auto;background:rgba(255,255,255,0.78);${border}border-radius:10px;padding:7px 9px;display:flex;align-items:center;gap:7px;">
       <span style="font-size:13px;">🎬</span>
       <span style="min-width:0;">
-        <span style="display:block;font-size:9.5px;font-weight:700;color:${it.finish ? '#3E6A85' : '#2A3138'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${it.label}</span>
+        <span style="display:block;font-size:9.5px;font-weight:700;color:#2A3138;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${it.label}</span>
         <span style="display:block;font-size:8.5px;color:#96A0A8;">動画準備中</span>
       </span>
     </div>`;
@@ -1421,9 +1434,21 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
    （全画面モーダルにはしない。背景も暗くしない）
    ============================================================ */
 let _expandedBox = null;
+const EXPAND_SCALE = 2.15;
 function expandBox(box) {
   if (_expandedBox && _expandedBox !== box) collapseBox(_expandedBox);
   _expandedBox = box;
+  // 幅ベースで拡大（transformだと中のテキストまで拡大されるため、幅を広げて動画だけ大きくする）
+  if (!box.dataset.ol) {
+    box.dataset.ol = box.style.left;
+    box.dataset.ow = box.style.width;
+  }
+  const w = parseFloat(box.dataset.ow);
+  const l = parseFloat(box.dataset.ol);
+  const nw = w * EXPAND_SCALE;
+  const nl = Math.max(1, l - (nw - w)); // 右端の位置を保ったまま左方向へ広がる
+  box.style.width = nw + '%';
+  box.style.left = nl + '%';
   box.classList.add('expanded');
   const v = box.querySelector('video');
   if (v) { v.loop = true; v.muted = true; try { v.currentTime = 0; } catch(e) {} v.play().catch(() => {}); }
@@ -1431,6 +1456,7 @@ function expandBox(box) {
 function collapseBox(box) {
   if (!box) return;
   box.classList.remove('expanded');
+  if (box.dataset.ol) { box.style.left = box.dataset.ol; box.style.width = box.dataset.ow; }
   const v = box.querySelector('video');
   if (v) { v.pause(); try { v.currentTime = 0; } catch(e) {} }
   if (_expandedBox === box) _expandedBox = null;
@@ -1879,12 +1905,8 @@ function playLine() {
       const v = box.video;
       if (!hasVideo(box.name) || !v) { animateByTime(st, 2500).then(resolve); return; }
 
-      // 直前の拡大を畳んで、今のステップのボックスを拡大表示
-      if (box.el) {
-        if (_expandedBox && _expandedBox !== box.el) collapseBox(_expandedBox);
-        box.el.classList.add('expanded');
-        _expandedBox = box.el;
-      }
+      // 再生中は拡大しない（拡大すると俯瞰図と被って軌道が見えなくなるため）。
+      // 小さいボックスの中で動画が再生され、外枠のハイライトで現在位置を示す。
       v.loop = false; v.muted = true;
       try { v.currentTime = 0; } catch(e) {}
       const playPromise = v.play();
@@ -1902,8 +1924,6 @@ function playLine() {
         path.setAttribute('stroke-dashoffset', totalLen * (1 - st.f1));
         settleBox(box);
         finishStepOverlay(st);
-        // このステップの拡大を畳む（次のステップで次のボックスが拡大する）
-        if (box.el) { box.el.classList.remove('expanded'); if (_expandedBox === box.el) _expandedBox = null; }
         v.pause(); try { v.currentTime = 0; } catch(e) {}
         resolve();
       };
@@ -1962,9 +1982,6 @@ function playLine() {
       const fv = finishBox.video;
       if (finishBox.name && hasVideo(finishBox.name) && fv) {
         await new Promise(resolve => {
-          if (_expandedBox && _expandedBox !== finishBox.el) collapseBox(_expandedBox);
-          finishBox.el.classList.add('expanded');
-          _expandedBox = finishBox.el;
           fv.loop = false; fv.muted = true;
           const onEnded = () => { fv.removeEventListener('ended', onEnded); resolve(); };
           fv.addEventListener('ended', onEnded);
@@ -2309,42 +2326,46 @@ videoInput.onchange = () => {
 
 /* 最初のフレームで人物をクリックしてもらい、追跡の起点にする */
 async function showSeedFrame() {
-  document.getElementById('analysisArea').style.display = 'block';
-  document.getElementById('progressWrap').style.display = 'block';
-  document.getElementById('replayRow').style.display = 'none';
-  const ov = document.getElementById('overlayCanvas');
+  /* 人物タップは全画面オーバーレイで行う。
+     ページ内キャンバスだと、スクロール操作で誤って触れて解析が始まってしまうため、
+     スクロールできない固定オーバーレイ上でタップしてもらう。 */
+  const overlay = document.getElementById('seedOverlay');
+  const ov = document.getElementById('seedCanvas');
   const OV_W = 640;
   ov.width = OV_W;
   ov.height = Math.round(activeVideo.videoHeight * OV_W / activeVideo.videoWidth);
   const octx = ov.getContext('2d');
 
   // 初回アップロード時、メタデータ直後はフレーム未デコードで真っ白になるため
-  // データ到達(readyState>=2)を待ってから描く（ただし永久待ちを避けるためタイムアウト付き）
+  // データ到達(readyState>=2)を待ってから描く（永久待ちを避けるためタイムアウト付き）
   if (activeVideo.readyState < 2) {
     await new Promise(r => {
       let done = false;
       const fin = () => { if (!done) { done = true; r(); } };
       activeVideo.addEventListener('loadeddata', fin, { once: true });
-      setTimeout(fin, 2000); // 2秒で来なければ先へ進む（スマホでdrawImage保険が効く）
+      setTimeout(fin, 2000);
     });
   }
   await seekTo(0.05);
 
   const drawSeed = () => {
     try { octx.drawImage(activeVideo, 0, 0, ov.width, ov.height); } catch (e) {}
-    octx.fillStyle = 'rgba(0,0,0,0.55)';
-    octx.fillRect(0, 0, ov.width, 34);
-    octx.font = 'bold 15px sans-serif';
-    octx.fillStyle = '#ffffff';
-    octx.fillText('👆 スケーター（人物）をタップしてください', 12, 23);
   };
   drawSeed();
-  setTimeout(drawSeed, 350);  // デコード遅延の保険
-  setTimeout(drawSeed, 900);  // スマホ向けにもう一段の保険
-  document.getElementById('progressText').textContent = '最初のフレームで人物の位置を指定すると、追跡精度が上がります';
-  document.getElementById('progressBar').style.width = '0%';
+  setTimeout(drawSeed, 350);
+  setTimeout(drawSeed, 900); // デコード遅延の保険(スマホ)
 
-  ov.style.cursor = 'crosshair';
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden'; // 背面のスクロールを止める
+
+  const closeOverlay = () => {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+    ov.onclick = null;
+    ov.ontouchend = null;
+    document.getElementById('seedCancel').onclick = null;
+  };
+
   let seedDone = false;
   const onSeed = (clientX, clientY) => {
     if (seedDone) return;
@@ -2353,18 +2374,20 @@ async function showSeedFrame() {
     const nx = (clientX - rect.left) / rect.width;
     const ny = (clientY - rect.top) / rect.height;
     seedPoint = { x: nx, y: ny };
-    ov.onclick = null;
-    ov.ontouchend = null;
-    ov.style.cursor = 'default';
+    closeOverlay();
     analyzeVideo();
   };
   ov.onclick = (e) => onSeed(e.clientX, e.clientY);
-  // タッチ端末では click が発火しにくい/遅延することがあるため touchend も拾う
   ov.ontouchend = (e) => {
     if (e.changedTouches && e.changedTouches.length) {
       e.preventDefault();
       onSeed(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
     }
+  };
+  document.getElementById('seedCancel').onclick = () => {
+    closeOverlay();
+    if (analysisMode === 'check') restoreMainAnalysis();
+    else { videoInput.value = ''; document.getElementById('analysisArea').style.display = 'none'; }
   };
 }
 
