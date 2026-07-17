@@ -525,54 +525,54 @@
    STEP DATA — カービング数列（1=ヒール, 2=トゥ, 0=なし, *=自由）
    ============================================================ */
 const RAW_STEPS = [
-  { name:'クロスステップ',           level:'初級+',  seq:'21' },
-  { name:'BWクロスステップ',         level:'中級',   seq:'1' },
-  { name:'TSクロスステップ',         level:'中級',   seq:'2' },
-  { name:'FK BWクロスステップ',      level:'中級+',  seq:'2' },
-  { name:'FK TSクロスステップ',      level:'中級+',  seq:'1' },
-  { name:'180ステップ',              level:'初級',   seq:'2' },
-  { name:'スイッチステップ',         level:'初級+',  seq:'21' },
-  { name:'360ステップ',              level:'初級+',  seq:'21' },
-  { name:'BS180ステップ',            level:'初級+',  seq:'1' },
-  { name:'BS360ステップ',            level:'中級',   seq:'12' },
-  { name:'バックフット180ステップ',  level:'初級+',  seq:'2' },
-  { name:'リバース360ステップ',      level:'中級',   seq:'12' },
-  { name:'リバースBS360ステップ',    level:'中級',   seq:'21' },
-  { name:'ピーターパン',             level:'初級',   seq:'2121' },
-  { name:'BWピーターパン',           level:'初級+',  seq:'1212' },
-  { name:'ゴーストライド',           level:'初級',   seq:'0' },
-  { name:'FKピーターパン',           level:'中級',   seq:'2121' },
-  { name:'ペンデュラム',             level:'中級',   seq:'2121' },
-  { name:'ベンドドロップ',           level:'中級',   seq:'0' },
-  { name:'チョップザパン',           level:'初級+',  seq:'2121' },
-  { name:'チョップザウッド',         level:'初級',   seq:'21' },
-  { name:'サイドワインダー',         level:'初級+',  seq:'2121' },
-  { name:'ルックバック',             level:'初級+',  seq:'0' },
-  { name:'ゴーストライドピルエット', level:'初級+',  seq:'0' },
-  { name:'ピルエット',               level:'中級',   seq:'0|2' },
-  { name:'BSピルエット',             level:'中級',   seq:'*' },
-  { name:'ピルエット540',            level:'中級+',  seq:'0' },
-  { name:'ピルエット720',            level:'上級',   seq:'0' },
-  { name:'フェイキーピルエット',     level:'中級',   seq:'0|1', fakie:true },
-  { name:'フェイキーピルエット540',  level:'中級+',  seq:'0|1', fakie:true },
-  { name:'フェイキーピルエット720',  level:'上級',   seq:'0|1', fakie:true },
-  { name:'フェイキーBSピルエット',   level:'中級',   seq:'0|2', fakie:true },
-  { name:'フェイキーBSピルエット540',level:'中級+',  seq:'0|2', fakie:true },
-  { name:'フェイキーBSピルエット720',level:'上級',   seq:'0|2', fakie:true },
-  { name:'ブイスピン',               level:'中級',   seq:'0' },
-  { name:'ボピット',                 level:'中級',   seq:'212' },
-  { name:'スワーリング',             level:'中級',   seq:'21' },
-  { name:'ツイストステップ',         level:'中級',   seq:'121' },
-  { name:'スウィフトステップ',       level:'中級',   seq:'2121' },
-  { name:'ティンカーベル',           level:'初級+',  seq:'2121' },
-  { name:'マンゴーフレッシュ',       level:'中級',   seq:'212121' },
-  { name:'バニーステップ',           level:'初級+',  seq:'21' },
-  { name:'セクスチェンジ',           level:'初級',   seq:'2121' },
-  { name:'スキーヤー',               level:'初級',   seq:'2121', rep:true },
-  { name:'クロスステップスクエア',   level:'中級+',  seq:'21' },
-  { name:'チョップザ360',            level:'中級+',  seq:'21' },
-  { name:'コリアンサルサ',           level:'中級',   seq:'21' },
-  { name:'コリアンクロスステップ',   level:'中級',   seq:'2121', rep:true },
+  { name:'クロスステップ', nameEn:'Cross Step',           level:'初級+',  seq:'21' },
+  { name:'BWクロスステップ', nameEn:'Backward Cross Step',         level:'中級',   seq:'1' },
+  { name:'TSクロスステップ', nameEn:'Toeside Cross Step',         level:'中級',   seq:'2' },
+  { name:'FK BWクロスステップ', nameEn:'Fakie Backward Cross Step',      level:'中級+',  seq:'2' },
+  { name:'FK TSクロスステップ', nameEn:'Fakie Toeside Cross Step',      level:'中級+',  seq:'1' },
+  { name:'180ステップ', nameEn:'180 Step',              level:'初級',   seq:'2' },
+  { name:'スイッチステップ', nameEn:'Switch Step',         level:'初級+',  seq:'21' },
+  { name:'360ステップ', nameEn:'360 Step',              level:'初級+',  seq:'21' },
+  { name:'BS180ステップ', nameEn:'BS 180 Step',            level:'初級+',  seq:'1' },
+  { name:'BS360ステップ', nameEn:'BS 360 Step',            level:'中級',   seq:'12' },
+  { name:'バックフット180ステップ', nameEn:'Back Foot 180 Step',  level:'初級+',  seq:'2' },
+  { name:'リバース360ステップ', nameEn:'Reverse 360 Step',      level:'中級',   seq:'12' },
+  { name:'リバースBS360ステップ', nameEn:'Reverse BS 360 Step',    level:'中級',   seq:'21' },
+  { name:'ピーターパン', nameEn:'Peter Pan',             level:'初級',   seq:'2121' },
+  { name:'BWピーターパン', nameEn:'Backward Peter Pan',           level:'初級+',  seq:'1212' },
+  { name:'ゴーストライド', nameEn:'Ghost Ride',           level:'初級',   seq:'0' },
+  { name:'FKピーターパン', nameEn:'Fakie Peter Pan',           level:'中級',   seq:'2121' },
+  { name:'ペンデュラム', nameEn:'Pendulum',             level:'中級',   seq:'2121' },
+  { name:'ベンドドロップ', nameEn:'Bend Drop',           level:'中級',   seq:'0' },
+  { name:'チョップザパン', nameEn:'Chop the Pan',           level:'初級+',  seq:'2121' },
+  { name:'チョップザウッド', nameEn:'Chop the Wood',         level:'初級',   seq:'21' },
+  { name:'サイドワインダー', nameEn:'Sidewinder',         level:'初級+',  seq:'2121' },
+  { name:'ルックバック', nameEn:'Look Back',             level:'初級+',  seq:'0' },
+  { name:'ゴーストライドピルエット', nameEn:'Ghost Ride Pirouette', level:'初級+',  seq:'0' },
+  { name:'ピルエット', nameEn:'Pirouette',               level:'中級',   seq:'0|2' },
+  { name:'BSピルエット', nameEn:'BS Pirouette',             level:'中級',   seq:'*' },
+  { name:'ピルエット540', nameEn:'Pirouette 540',            level:'中級+',  seq:'0' },
+  { name:'ピルエット720', nameEn:'Pirouette 720',            level:'上級',   seq:'0' },
+  { name:'フェイキーピルエット', nameEn:'Fakie Pirouette',     level:'中級',   seq:'0|1', fakie:true },
+  { name:'フェイキーピルエット540', nameEn:'Fakie Pirouette 540',  level:'中級+',  seq:'0|1', fakie:true },
+  { name:'フェイキーピルエット720', nameEn:'Fakie Pirouette 720',  level:'上級',   seq:'0|1', fakie:true },
+  { name:'フェイキーBSピルエット', nameEn:'Fakie BS Pirouette',   level:'中級',   seq:'0|2', fakie:true },
+  { name:'フェイキーBSピルエット540', nameEn:'Fakie BS Pirouette 540',level:'中級+',  seq:'0|2', fakie:true },
+  { name:'フェイキーBSピルエット720', nameEn:'Fakie BS Pirouette 720',level:'上級',   seq:'0|2', fakie:true },
+  { name:'ブイスピン', nameEn:'V-Spin',               level:'中級',   seq:'0' },
+  { name:'ボピット', nameEn:'Bop-it',                 level:'中級',   seq:'212' },
+  { name:'スワーリング', nameEn:'Swirling',             level:'中級',   seq:'21' },
+  { name:'ツイストステップ', nameEn:'Twist Step',         level:'中級',   seq:'121' },
+  { name:'スウィフトステップ', nameEn:'Swift Step',       level:'中級',   seq:'2121' },
+  { name:'ティンカーベル', nameEn:'Tinker Bell',           level:'初級+',  seq:'2121' },
+  { name:'マンゴーフレッシュ', nameEn:'Mango Fresh',       level:'中級',   seq:'212121' },
+  { name:'バニーステップ', nameEn:'Bunny Step',           level:'初級+',  seq:'21' },
+  { name:'セクスチェンジ', nameEn:'Sex Change',           level:'初級',   seq:'2121' },
+  { name:'スキーヤー', nameEn:'Skier',               level:'初級',   seq:'2121', rep:true },
+  { name:'クロスステップスクエア', nameEn:'Cross Step Square',   level:'中級+',  seq:'21' },
+  { name:'チョップザ360', nameEn:'Chop the 360',            level:'中級+',  seq:'21' },
+  { name:'コリアンサルサ', nameEn:'Korean Salsa',           level:'中級',   seq:'21' },
+  { name:'コリアンクロスステップ', nameEn:'Korean Cross Step',   level:'中級',   seq:'2121', rep:true },
 ];
 function flipSeq(seq) {
   return seq.split('').map(c => c === '1' ? '2' : c === '2' ? '1' : c).join('');
@@ -583,7 +583,10 @@ function buildAllSteps() {
     all.push({ ...s, sw:false });
     // フェイキー系は元々スイッチ（後ろ向き）状態のステップなのでスイッチ版は作らない
     if (/[12]/.test(s.seq) && !s.fakie) {
-      all.push({ name:'スイッチ' + s.name, level:s.level, seq:flipSeq(s.seq), rep:s.rep, sw:true });
+      all.push({
+        name:'スイッチ' + s.name, level:s.level, seq:flipSeq(s.seq), rep:s.rep, sw:true,
+        nameEn: s.nameEn ? 'Switch ' + s.nameEn : undefined,
+      });
     }
   });
   return all;
@@ -591,99 +594,99 @@ function buildAllSteps() {
 let ALL_STEPS = buildAllSteps();
 
 const TRICKS = [
-  { name:'ショービット', cat:'Air', level:'初級' },
-  { name:'BSショービット', cat:'Air', level:'初級+' },
-  { name:'ワンフットショービット', cat:'Air', level:'初級+' },
-  { name:'スウェディッシュショービット', cat:'Air', level:'初級+' },
-  { name:'スラップショービット', cat:'Air', level:'初級+' },
-  { name:'オールドスクールショービット', cat:'Air', level:'初級+' },
-  { name:'シャンカー', cat:'Air', level:'初級+' },
-  { name:'スピンビッグ', cat:'Air', level:'初級+' },
-  { name:'ロシアンショービット', cat:'Air', level:'中級' },
-  { name:'クロスフットショービット', cat:'Air', level:'中級' },
-  { name:'クロスフットダブルレインボー', cat:'Air', level:'中級' },
-  { name:'ポップショービット', cat:'Air', level:'中級' },
-  { name:'FSポップショービット', cat:'Air', level:'中級' },
-  { name:'キックフリップ', cat:'Air', level:'中級' },
-  { name:'ヒールフリップ', cat:'Air', level:'中級' },
-  { name:'ビッグスピン', cat:'Air', level:'中級' },
-  { name:'FS180', cat:'Air', level:'中級' },
-  { name:'BS180', cat:'Air', level:'中級' },
-  { name:'オーリー', cat:'Air', level:'中級~' },
-  { name:'ハンドオーリー', cat:'Air', level:'中級~' },
-  { name:'ショービット360', cat:'Air', level:'中級+' },
-  { name:'オールドスクールショービット360', cat:'Air', level:'中級+' },
-  { name:'FS360', cat:'Air', level:'中級+' },
-  { name:'バリアルフリップ', cat:'Air', level:'中級+' },
-  { name:'FKバリアルフリップ', cat:'Air', level:'中級+' },
-  { name:'FKキックフリップ', cat:'Air', level:'中級+' },
-  { name:'ダブルレインボー', cat:'Air', level:'中級+' },
-  { name:'ワンフットビッグスピン', cat:'Air', level:'中級+' },
-  { name:'オーリーノース', cat:'Air', level:'中級+' },
-  { name:'BS180フリップ', cat:'Air', level:'中級+' },
-  { name:'ポップショービット360', cat:'Air', level:'上級' },
-  { name:'ビガースピン', cat:'Air', level:'上級' },
-  { name:'ビッグフリップ', cat:'Air', level:'上級' },
-  { name:'FK FS ビッグヒールフリップ', cat:'Air', level:'上級' },
-  { name:'ダブルフリップ', cat:'Air', level:'上級' },
-  { name:'フルキャブ', cat:'Air', level:'上級' },
-  { name:'ヒナタレインボー', cat:'Air', level:'上級' },
-  { name:'ノーリートレフリップ', cat:'Air', level:'上級' },
-  { name:'ショービット540', cat:'Air', level:'上級+' },
-  { name:'オールドスクールショービット540', cat:'Air', level:'上級+' },
-  { name:'トリプルフリップ', cat:'Air', level:'上級+' },
-  { name:'ビッグスピンダブルフリップ', cat:'Air', level:'上級+' },
-  { name:'ガゼルスピン', cat:'Air', level:'上級+' },
-  { name:'ドルフィンフリップ', cat:'Air', level:'上級+' },
-  { name:'インポッシブル', cat:'Air', level:'上級+' },
-  { name:'FKインポッシブル', cat:'Air', level:'上級+' },
-  { name:'FSスライド180', cat:'Slide', level:'初級' },
-  { name:'BSスライド180', cat:'Slide', level:'初級+' },
-  { name:'FSノーコンプライスライド180', cat:'Slide', level:'初級+' },
-  { name:'BSノーコンプライスライド180', cat:'Slide', level:'初級+' },
-  { name:'BSノーコンプライスライドショービット', cat:'Slide', level:'初級+' },
-  { name:'FSスピードチェック', cat:'Slide', level:'中級' },
-  { name:'FSスライドショービット', cat:'Slide', level:'中級' },
-  { name:'FSノーコンプライスライドショービット', cat:'Slide', level:'中級' },
-  { name:'BSスピードチェック', cat:'Slide', level:'中級+' },
-  { name:'BSスライドショービット', cat:'Slide', level:'中級+' },
-  { name:'FSスライド360', cat:'Slide', level:'中級+' },
-  { name:'ベイクドブロテート', cat:'Slide', level:'中級+' },
-  { name:'BSノーコンプライスライドショービット360', cat:'Slide', level:'中級+' },
-  { name:'BSスライド360', cat:'Slide', level:'上級' },
-  { name:'BSスライドショービット360', cat:'Slide', level:'上級' },
-  { name:'レディキラースライド', cat:'Slide', level:'上級' },
-  { name:'ケイブマン', cat:'Hand', level:'初級' },
-  { name:'タイガークロー', cat:'Hand', level:'初級' },
-  { name:'BSタイガークロー', cat:'Hand', level:'初級' },
-  { name:'ボンレス', cat:'Hand', level:'初級' },
-  { name:'タイガークロー540', cat:'Hand', level:'初級+' },
-  { name:'BSタイガークロー540', cat:'Hand', level:'初級+' },
-  { name:'ペガサス', cat:'Hand', level:'初級+' },
-  { name:'デーモンクロー', cat:'Hand', level:'初級+' },
-  { name:'アームポッシブル', cat:'Hand', level:'初級+' },
-  { name:'ボンレス180', cat:'Hand', level:'初級+' },
-  { name:'ノーコンプライ180フィンガーフリップ', cat:'Hand', level:'初級+' },
-  { name:'ノーコンプライハンドフリップ', cat:'Hand', level:'初級+' },
-  { name:'ダブルハンドグラブ', cat:'Hand', level:'初級+' },
-  { name:'タイガークローフリップ', cat:'Hand', level:'中級' },
-  { name:'エアログラブ', cat:'Hand', level:'中級' },
-  { name:'ボンレス360', cat:'Hand', level:'中級' },
-  { name:'ボンレスビッグスピン', cat:'Hand', level:'中級' },
-  { name:'ハーフムーン', cat:'Hand', level:'中級' },
-  { name:'トラックスタンド360', cat:'Hand', level:'中級' },
-  { name:'タイガークローダブルフリップ', cat:'Hand', level:'中級+' },
-  { name:'デュオグラブ', cat:'Hand', level:'中級+' },
-  { name:'エアロスラム', cat:'Hand', level:'中級+' },
-  { name:'エアロスラップ', cat:'Hand', level:'中級+' },
-  { name:'エアロツイスト', cat:'Hand', level:'中級+' },
-  { name:'ニンジャフリップ', cat:'Hand', level:'中級+' },
-  { name:'BSニンジャフリップ', cat:'Hand', level:'中級+' },
-  { name:'ボンレスビガースピン', cat:'Hand', level:'中級+' },
-  { name:'フルムーン', cat:'Hand', level:'中級+' },
-  { name:'エアログラブ720', cat:'Hand', level:'上級' },
-  { name:'エアロスラッシュ', cat:'Hand', level:'上級' },
-  { name:'タイタンフリップ', cat:'Hand', level:'上級+' },
+  { name:'ショービット', nameEn:'Shove-it', cat:'Air', level:'初級' },
+  { name:'BSショービット', nameEn:'BS Shove-it', cat:'Air', level:'初級+' },
+  { name:'ワンフットショービット', nameEn:'One Foot Shove-it', cat:'Air', level:'初級+' },
+  { name:'スウェディッシュショービット', nameEn:'Swedish Shove-it', cat:'Air', level:'初級+' },
+  { name:'スラップショービット', nameEn:'Slap Shove-it', cat:'Air', level:'初級+' },
+  { name:'オールドスクールショービット', nameEn:'Old School Shove-it', cat:'Air', level:'初級+' },
+  { name:'シャンカー', nameEn:'Shanker', cat:'Air', level:'初級+' },
+  { name:'スピンビッグ', nameEn:'Spin Big', cat:'Air', level:'初級+' },
+  { name:'ロシアンショービット', nameEn:'Russian Shove-it', cat:'Air', level:'中級' },
+  { name:'クロスフットショービット', nameEn:'Cross Foot Shove-it', cat:'Air', level:'中級' },
+  { name:'クロスフットダブルレインボー', nameEn:'Cross Foot Double Rainbow', cat:'Air', level:'中級' },
+  { name:'ポップショービット', nameEn:'Pop Shove-it', cat:'Air', level:'中級' },
+  { name:'FSポップショービット', nameEn:'FS Pop Shove-it', cat:'Air', level:'中級' },
+  { name:'キックフリップ', nameEn:'Kickflip', cat:'Air', level:'中級' },
+  { name:'ヒールフリップ', nameEn:'Heelflip', cat:'Air', level:'中級' },
+  { name:'ビッグスピン', nameEn:'Big Spin', cat:'Air', level:'中級' },
+  { name:'FS180', nameEn:'FS 180', cat:'Air', level:'中級' },
+  { name:'BS180', nameEn:'BS 180', cat:'Air', level:'中級' },
+  { name:'オーリー', nameEn:'Ollie', cat:'Air', level:'中級~' },
+  { name:'ハンドオーリー', nameEn:'Hand Ollie', cat:'Air', level:'中級~' },
+  { name:'ショービット360', nameEn:'Shove-it 360', cat:'Air', level:'中級+' },
+  { name:'オールドスクールショービット360', nameEn:'Old School Shove-it 360', cat:'Air', level:'中級+' },
+  { name:'FS360', nameEn:'FS 360', cat:'Air', level:'中級+' },
+  { name:'バリアルフリップ', nameEn:'Varial Flip', cat:'Air', level:'中級+' },
+  { name:'FKバリアルフリップ', nameEn:'Fakie Varial Flip', cat:'Air', level:'中級+' },
+  { name:'FKキックフリップ', nameEn:'Fakie Kickflip', cat:'Air', level:'中級+' },
+  { name:'ダブルレインボー', nameEn:'Double Rainbow', cat:'Air', level:'中級+' },
+  { name:'ワンフットビッグスピン', nameEn:'One Foot Big Spin', cat:'Air', level:'中級+' },
+  { name:'オーリーノース', nameEn:'Ollie North', cat:'Air', level:'中級+' },
+  { name:'BS180フリップ', nameEn:'BS 180 Flip', cat:'Air', level:'中級+' },
+  { name:'ポップショービット360', nameEn:'Pop Shove-it 360', cat:'Air', level:'上級' },
+  { name:'ビガースピン', nameEn:'Bigger Spin', cat:'Air', level:'上級' },
+  { name:'ビッグフリップ', nameEn:'Big Flip', cat:'Air', level:'上級' },
+  { name:'FK FS ビッグヒールフリップ', nameEn:'Fakie FS Big Heelflip', cat:'Air', level:'上級' },
+  { name:'ダブルフリップ', nameEn:'Double Flip', cat:'Air', level:'上級' },
+  { name:'フルキャブ', nameEn:'Full Cab', cat:'Air', level:'上級' },
+  { name:'ヒナタレインボー', nameEn:'Hinata Rainbow', cat:'Air', level:'上級' },
+  { name:'ノーリートレフリップ', nameEn:'Nollie Tre Flip', cat:'Air', level:'上級' },
+  { name:'ショービット540', nameEn:'Shove-it 540', cat:'Air', level:'上級+' },
+  { name:'オールドスクールショービット540', nameEn:'Old School Shove-it 540', cat:'Air', level:'上級+' },
+  { name:'トリプルフリップ', nameEn:'Triple Flip', cat:'Air', level:'上級+' },
+  { name:'ビッグスピンダブルフリップ', nameEn:'Big Spin Double Flip', cat:'Air', level:'上級+' },
+  { name:'ガゼルスピン', nameEn:'Gazelle Spin', cat:'Air', level:'上級+' },
+  { name:'ドルフィンフリップ', nameEn:'Dolphin Flip', cat:'Air', level:'上級+' },
+  { name:'インポッシブル', nameEn:'Impossible', cat:'Air', level:'上級+' },
+  { name:'FKインポッシブル', nameEn:'Fakie Impossible', cat:'Air', level:'上級+' },
+  { name:'FSスライド180', nameEn:'FS Slide 180', cat:'Slide', level:'初級' },
+  { name:'BSスライド180', nameEn:'BS Slide 180', cat:'Slide', level:'初級+' },
+  { name:'FSノーコンプライスライド180', nameEn:'FS Nocomply Slide 180', cat:'Slide', level:'初級+' },
+  { name:'BSノーコンプライスライド180', nameEn:'BS Nocomply Slide 180', cat:'Slide', level:'初級+' },
+  { name:'BSノーコンプライスライドショービット', nameEn:'BS Nocomply Slide Shove-it', cat:'Slide', level:'初級+' },
+  { name:'FSスピードチェック', nameEn:'FS Speed Check', cat:'Slide', level:'中級' },
+  { name:'FSスライドショービット', nameEn:'FS Slide Shove-it', cat:'Slide', level:'中級' },
+  { name:'FSノーコンプライスライドショービット', nameEn:'FS Nocomply Slide Shove-it', cat:'Slide', level:'中級' },
+  { name:'BSスピードチェック', nameEn:'BS Speed Check', cat:'Slide', level:'中級+' },
+  { name:'BSスライドショービット', nameEn:'BS Slide Shove-it', cat:'Slide', level:'中級+' },
+  { name:'FSスライド360', nameEn:'FS Slide 360', cat:'Slide', level:'中級+' },
+  { name:'ベイクドブロテート', nameEn:'Baked Brotato', cat:'Slide', level:'中級+' },
+  { name:'BSノーコンプライスライドショービット360', nameEn:'BS Nocomply Slide Shove-it 360', cat:'Slide', level:'中級+' },
+  { name:'BSスライド360', nameEn:'BS Slide 360', cat:'Slide', level:'上級' },
+  { name:'BSスライドショービット360', nameEn:'BS Slide Shove-it 360', cat:'Slide', level:'上級' },
+  { name:'レディキラースライド', nameEn:'Lady Killer Slide', cat:'Slide', level:'上級' },
+  { name:'ケイブマン', nameEn:'Caveman', cat:'Hand', level:'初級' },
+  { name:'タイガークロー', nameEn:'Tiger Claw', cat:'Hand', level:'初級' },
+  { name:'BSタイガークロー', nameEn:'BS Tiger Claw', cat:'Hand', level:'初級' },
+  { name:'ボンレス', nameEn:'Boneless', cat:'Hand', level:'初級' },
+  { name:'タイガークロー540', nameEn:'Tiger Claw 540', cat:'Hand', level:'初級+' },
+  { name:'BSタイガークロー540', nameEn:'BS Tiger Claw 540', cat:'Hand', level:'初級+' },
+  { name:'ペガサス', nameEn:'Pegasus', cat:'Hand', level:'初級+' },
+  { name:'デーモンクロー', nameEn:'Demon Claw', cat:'Hand', level:'初級+' },
+  { name:'アームポッシブル', nameEn:'Arm-possible', cat:'Hand', level:'初級+' },
+  { name:'ボンレス180', nameEn:'Boneless 180', cat:'Hand', level:'初級+' },
+  { name:'ノーコンプライ180フィンガーフリップ', nameEn:'Nocomply 180 Finger Flip', cat:'Hand', level:'初級+' },
+  { name:'ノーコンプライハンドフリップ', nameEn:'Nocomply Hand Flip', cat:'Hand', level:'初級+' },
+  { name:'ダブルハンドグラブ', nameEn:'Double Hand Grab', cat:'Hand', level:'初級+' },
+  { name:'タイガークローフリップ', nameEn:'Tiger Claw Flip', cat:'Hand', level:'中級' },
+  { name:'エアログラブ', nameEn:'Aero Grab', cat:'Hand', level:'中級' },
+  { name:'ボンレス360', nameEn:'Boneless 360', cat:'Hand', level:'中級' },
+  { name:'ボンレスビッグスピン', nameEn:'Boneless Big Spin', cat:'Hand', level:'中級' },
+  { name:'ハーフムーン', nameEn:'Half Moon', cat:'Hand', level:'中級' },
+  { name:'トラックスタンド360', nameEn:'Track Stand 360', cat:'Hand', level:'中級' },
+  { name:'タイガークローダブルフリップ', nameEn:'Tiger Claw Double Flip', cat:'Hand', level:'中級+' },
+  { name:'デュオグラブ', nameEn:'Duo Grab', cat:'Hand', level:'中級+' },
+  { name:'エアロスラム', nameEn:'Aero Slam', cat:'Hand', level:'中級+' },
+  { name:'エアロスラップ', nameEn:'Aero Slap', cat:'Hand', level:'中級+' },
+  { name:'エアロツイスト', nameEn:'Aero Twist', cat:'Hand', level:'中級+' },
+  { name:'ニンジャフリップ', nameEn:'Ninja Flip', cat:'Hand', level:'中級+' },
+  { name:'BSニンジャフリップ', nameEn:'BS Ninja Flip', cat:'Hand', level:'中級+' },
+  { name:'ボンレスビガースピン', nameEn:'Boneless Bigger Spin', cat:'Hand', level:'中級+' },
+  { name:'フルムーン', nameEn:'Full Moon', cat:'Hand', level:'中級+' },
+  { name:'エアログラブ720', nameEn:'Aero Grab 720', cat:'Hand', level:'上級' },
+  { name:'エアロスラッシュ', nameEn:'Aero Slash', cat:'Hand', level:'上級' },
+  { name:'タイタンフリップ', nameEn:'Titan Flip', cat:'Hand', level:'上級+' },
 ];
 
 const SIDE_LABEL = { H: 'ヒールサイド', T: 'トゥサイド', S: '直進' };
@@ -789,6 +792,8 @@ const I18N = {
     mysteps_title: 'できるステップを選ぶ', mysteps_all: '全て選択', mysteps_none: '全て解除',
     custom_title: 'オリジナルのステップを追加できます', custom_add: '追加',
     myline_title: 'マイライン', myline_empty: 'まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。',
+    carve_only: 'カービングのみ',
+    finish_placeholder: 'トリックで締める', selected_tap_remove: '（選択中・タップで外す）',
     help_title: '使い方',
   },
   en: {
@@ -808,6 +813,8 @@ const I18N = {
     mysteps_title: 'Choose the steps you can do', mysteps_all: 'Select all', mysteps_none: 'Clear all',
     custom_title: 'Add your own custom step', custom_add: 'Add',
     myline_title: 'My Lines', myline_empty: 'No saved lines yet. Use "💾 Save Line" on the design screen.',
+    carve_only: 'Carving only',
+    finish_placeholder: 'Finish with a trick', selected_tap_remove: ' (Selected · tap to remove)',
     help_title: 'How to Use',
   },
 };
@@ -836,6 +843,15 @@ document.getElementById('langSwitch').querySelectorAll('button').forEach(b => {
 });
 
 const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
+
+/* 表示名の解決: 英語モードでは対応する nameEn があればそれを使い、
+   （カスタムステップ等）未登録のものは日本語名のままフォールバックする。
+   ALL_STEPS/TRICKS は起点データが変わっても都度参照するため関数として持つ。 */
+function dispName(japaneseName) {
+  if (currentLang !== 'en') return japaneseName;
+  const hit = ALL_STEPS.find(s => s.name === japaneseName) || TRICKS.find(t => t.name === japaneseName);
+  return (hit && hit.nameEn) ? hit.nameEn : japaneseName;
+}
 
 /* ============================================================
    STEP VIDEOS — 実写のステップ撮影動画をアプリ内でプレビューする。
@@ -899,7 +915,7 @@ function showMyStepsPreview(stepName) {
   const mirror = shouldMirrorVideo(stepName);
   pv.style.display = 'block';
   pv.innerHTML = `
-    <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${stepName} のプレビュー</div>
+    <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${dispName(stepName)}</div>
     <video src="${src}" muted loop autoplay playsinline controls
       style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>`;
 }
@@ -914,7 +930,7 @@ function renderMySteps() {
     const vmark = hasVideo(s.name)
       ? `<span class="chip-play" title="動画プレビュー" style="margin-right:4px;cursor:pointer;">🎬</span>`
       : '';
-    c.innerHTML = `${vmark}${s.name}<span class="lv">${s.level}</span>`;
+    c.innerHTML = `${vmark}${dispName(s.name)}<span class="lv">${s.level}</span>`;
     if (hasVideo(s.name)) {
       c.querySelector('.chip-play').onclick = (e) => {
         e.stopPropagation(); // チップ本体のトグルを発火させない
@@ -1356,7 +1372,7 @@ function renderDesign(animate = false) {
       <g class="step-label" data-seg="${a.seg}">
         <text x="${LABEL_X}" y="${labelY + 5}" font-size="16" font-weight="700" fill="${ACCENT}"
           stroke="rgba(255,255,255,0.92)" stroke-width="5" paint-order="stroke" stroke-linejoin="round"
-          text-anchor="start" font-family="sans-serif" pointer-events="none">${a.name}</text>
+          text-anchor="start" font-family="sans-serif" pointer-events="none">${dispName(a.name)}</text>
       </g>`;
   });
   svg.querySelector('#stepOverlays').innerHTML = overlays;
@@ -1393,7 +1409,7 @@ function renderDesign(animate = false) {
   marks += `<g class="finish-label">
     ${finSel ? `<circle cx="${endP.x}" cy="${endP.y - 22}" r="16" fill="none" stroke="#5E8CA7" stroke-width="2"/>` : ''}
     <circle class="finish-hit" cx="${endP.x}" cy="${endP.y - 22}" r="11" fill="${finishTrick ? '#3E6A85' : '#ffffff'}" stroke="${finishTrick ? '#3E6A85' : '#96A0A8'}" stroke-width="2.5" style="cursor:pointer;"/>
-    <text x="${endP.x + 20}" y="${endP.y - 18}" font-size="14" font-weight="700" fill="${finishTrick ? '#3E6A85' : '#96A0A8'}" font-family="sans-serif" pointer-events="none">FINISH: ${finishTrick || 'トリックで締める'}</text>
+    <text x="${endP.x + 20}" y="${endP.y - 18}" font-size="14" font-weight="700" fill="${finishTrick ? '#3E6A85' : '#96A0A8'}" font-family="sans-serif" pointer-events="none">FINISH: ${finishTrick ? dispName(finishTrick) : t('finish_placeholder')}</text>
   </g>`;
   svg.querySelector('#markers').innerHTML = marks;
 
@@ -1423,11 +1439,11 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
   const items = sorted.map((a, k) => {
     const midFy = (bs[a.seg] + bs[a.seg + a.span]) / 2;
     const p = pointAtFy(midFy);
-    return { key: 'vbox-' + k, label: `${k+1}. ${a.name}`, name: a.name, seg: a.seg, anchorX: p.x, anchorY: p.y, y: p.y };
+    return { key: 'vbox-' + k, label: `${k+1}. ${dispName(a.name)}`, name: a.name, seg: a.seg, anchorX: p.x, anchorY: p.y, y: p.y };
   });
   if (finishTrick) {
     const p = pointAtFy(bs[bs.length - 1]);
-    items.push({ key: 'vbox-finish', label: `FINISH: ${finishTrick}`, name: finishTrick, seg: 'finish', anchorX: p.x, anchorY: p.y - 22, y: p.y - 22, finish: true });
+    items.push({ key: 'vbox-finish', label: `FINISH: ${dispName(finishTrick)}`, name: finishTrick, seg: 'finish', anchorX: p.x, anchorY: p.y - 22, y: p.y - 22, finish: true });
   }
 
   const BOX_W = 256, BOX_X = 458; // 軌道はx=60〜440に描かれるため、458以降なら被らない最大幅
@@ -1720,7 +1736,7 @@ function showPickerPreview(stepName) {
   const mirror = shouldMirrorVideo(stepName); // FK版は専用撮影素材のためスイッチ名では反転しない
   pv.style.display = 'block';
   pv.innerHTML = `
-    <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${stepName} のプレビュー</div>
+    <div style="font-size:11px;font-weight:700;color:var(--ink-2);margin-bottom:6px;">▶ ${dispName(stepName)}</div>
     <video src="${src}" muted loop autoplay playsinline controls
       style="width:100%;max-width:340px;border-radius:12px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>`;
 }
@@ -1761,7 +1777,7 @@ function renderPicker() {
         const c = document.createElement('span');
         c.className = 'cchip' + (finishTrick === t.name ? ' on' : '');
         const vmark = hasVideo(t.name) ? ' 🎬' : '';
-        c.innerHTML = `${t.name}${vmark}<span class="lv">${t.cat}・${t.level}</span>`;
+        c.innerHTML = `${dispName(t.name)}${vmark}<span class="lv">${t.cat}・${t.level}</span>`;
         c.onclick = () => { pushHistory(); finishTrick = t.name; renderDesign(); renderPicker(); };
         chips.appendChild(c);
       });
@@ -1826,10 +1842,10 @@ function renderPicker() {
   }
 
   if (occ && occ.seg !== i) {
-    hint.textContent = `このカービングは「${occ.name}」の一部です`;
+    hint.textContent = `このカービングは「${dispName(occ.name)}」の一部です`;
     const rm = document.createElement('span');
     rm.className = 'cchip';
-    rm.textContent = `「${occ.name}」を外す`;
+    rm.textContent = `「${dispName(occ.name)}」を外す`;
     rm.onclick = () => { assignments = assignments.filter(a => a !== occ); renderDesign(); renderPicker(); };
     chips.appendChild(rm);
     return;
@@ -1853,7 +1869,7 @@ function renderPicker() {
   if (occ) {
     const cur = document.createElement('span');
     cur.className = 'cchip on';
-    cur.textContent = occ.name + '（選択中・タップで外す）';
+    cur.textContent = dispName(occ.name) + t('selected_tap_remove');
     cur.onclick = () => { assignments = assignments.filter(a => a !== occ); renderDesign(); renderPicker(); };
     chips.appendChild(cur);
     showPickerPreview(occ.name); // 選択中ステップの確認プレビュー
@@ -1881,7 +1897,7 @@ function renderPicker() {
     c.className = 'cchip';
     const span = stepSpan(s, matchSeqAt(s, i, sides));
     const vmark = hasVideo(s.name) ? ' 🎬' : '';
-    c.innerHTML = `${s.name}${vmark}<span class="lv">${s.level}${span > 1 ? '・' + span + 'カーブ' : ''}${s.rep ? '↻' : ''}</span>`;
+    c.innerHTML = `${dispName(s.name)}${vmark}<span class="lv">${s.level}${span > 1 ? '・' + span + 'カーブ' : ''}${s.rep ? '↻' : ''}</span>`;
     c.onclick = () => placeStep(i, s);
     chips.appendChild(c);
   });
@@ -2259,8 +2275,8 @@ function renderSavedLines() {
   lines.forEach((l, i) => {
     const row = document.createElement('div');
     row.className = 'se-row';
-    const steps = l.assignments.map(a => a.name).join(' → ') || 'カービングのみ';
-    row.innerHTML = `<span class="se-name"><b>${l.name}</b><br><span style="font-size:11px;color:var(--ink-3);">${steps}${l.finishTrick ? ' → FINISH: ' + l.finishTrick : ''}</span></span>`;
+    const steps = l.assignments.map(a => dispName(a.name)).join(' → ') || t('carve_only');
+    row.innerHTML = `<span class="se-name"><b>${l.name}</b><br><span style="font-size:11px;color:var(--ink-3);">${steps}${l.finishTrick ? ' → FINISH: ' + dispName(l.finishTrick) : ''}</span></span>`;
     const renameBtn = document.createElement('button');
     renameBtn.className = 'regen'; renameBtn.textContent = '✏';
     renameBtn.title = '名前を変更';
@@ -2341,7 +2357,7 @@ function renderSideEditor() {
   RAW_STEPS.forEach(s => {
     const row = document.createElement('div');
     row.className = 'se-row';
-    row.innerHTML = `<span class="se-name">${s.name} <span style="color:var(--ink-3);font-size:10.5px;">${s.level}${s.rep ? '・繰返し可' : ''}</span></span>`;
+    row.innerHTML = `<span class="se-name">${dispName(s.name)} <span style="color:var(--ink-3);font-size:10.5px;">${s.level}${s.rep ? '・繰返し可' : ''}</span></span>`;
     const input = document.createElement('input');
     input.className = 'se-seq';
     input.value = s.seq;
