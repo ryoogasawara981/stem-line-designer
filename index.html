@@ -25,6 +25,7 @@
 </script>
 <style>
   :root {
+    --tabbar-h: calc(58px + env(safe-area-inset-bottom)); /* アイコン+文字+上下パディングの実測値。ここを変えればwrap側の余白も自動追従する */
     --warm: #E0663C; --warm-deep: #B84E28; --warm-soft: #F2A488;
     --warm-pale: rgba(224,102,60,.12);
     --cool: #5E8CA7; --cool-deep: #3E6A85; --cool-soft: #A8C4D4;
@@ -54,7 +55,7 @@
       radial-gradient(460px 420px at 70% 75%, rgba(168,196,212,.3), transparent 60%);
     filter: blur(2px);
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 110px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px calc(var(--tabbar-h) + 24px); }
   header { padding: 34px 0 26px; }
   .brand { display: flex; align-items: baseline; gap: 12px; justify-content: center; text-align: center; }
   .brand h1 { font-size: 32px; letter-spacing: .16em; font-weight: 700; }
@@ -97,6 +98,9 @@
   @media (max-width: 980px) { .main-grid.two-col { grid-template-columns: 1fr; } }
 
   .section { margin-bottom: 12px; }
+  /* サブ画面(マイステップ/マイライン/使い方/設定)はタブバーの真上まで内容が来ることがあるため、
+     画面ごとにも念のためタブバー高さ分の余白を確保する（wrapのpaddingだけに頼らない二重の保険） */
+  #secSteps, #secSaved, #secHelp, #secSettings { padding-bottom: calc(var(--tabbar-h) + 16px); }
   .step-num { font-size: 10.5px; letter-spacing: .24em; color: var(--cool-deep); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
   .section h2 { font-size: 17px; font-weight: 700; margin-bottom: 10px; letter-spacing: .02em; }
   .note { font-size: 12.5px; color: var(--ink-2); margin-bottom: 16px; }
@@ -236,7 +240,7 @@
 
   /* スマホ対応 */
   @media (max-width: 640px) {
-    .wrap { padding: 16px 12px 60px; }
+    .wrap { padding: 16px 12px calc(var(--tabbar-h) + 20px); }
     header { padding: 20px 0 16px; }
     .brand h1 { font-size: 26px; }
     .card { padding: 14px; border-radius: 18px; }
@@ -562,8 +566,8 @@
     </button>
     <button class="tab-item" id="navSettings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3.2"/>
-        <path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.3-1.5-2.6-1.9.5c-.4-.4-.8-.7-1.3-.9l-.3-2H10l-.3 2c-.5.2-.9.5-1.3.9l-1.9-.5-1.5 2.6L6.6 12c-.1.5-.1 1 0 1.5L5 14.8l1.5 2.6 1.9-.5c.4.4.8.7 1.3.9l.3 2h3.9l.3-2c.5-.2.9-.5 1.3-.9l1.9.5 1.5-2.6-1.6-1.3z"/>
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
       </svg>
       <span data-i18n="nav_settings">設定</span>
     </button>
