@@ -302,7 +302,7 @@
       <input type="file" id="videoInput" accept="video/*" style="display:none;">
       <div class="uz-plus">+</div>
       <div class="uz-text" data-i18n="upload_cta">動画を選択</div>
-      <div class="uz-sub">mp4 / mov — AIがボード軌道を自動検出</div>
+      <div class="uz-sub" data-i18n="upload_sub">mp4 / mov — AIがカービングの軌道を自動検出</div>
     </div>
     <div class="skip-link"><a id="skipAnalysis" data-i18n="skip_link">動画なしでラインを設計する →</a></div>
 
@@ -780,7 +780,7 @@ const I18N = {
   ja: {
     nav_mysteps: 'マイステップ', nav_myline: 'マイライン', nav_help: '使い方',
     step1_title: 'カービングを検知する',
-    upload_cta: '動画を選択', upload_sub: 'mp4 / mov — AIがボード軌道を自動検出',
+    upload_cta: '動画を選択', upload_sub: 'mp4 / mov — AIがカービングの軌道を自動検出',
     skip_link: '動画なしでラインを設計する',
     step2_title: 'カービングにステップを当てはめる',
     replay_summary: '🎥 解析映像を見返す',
@@ -797,6 +797,7 @@ const I18N = {
     carve_only: 'カービングのみ',
     finish_placeholder: 'トリックで締める', selected_tap_remove: '（選択中・タップで外す）',
     side_heel: 'ヒールサイドカーブ', side_toe: 'トゥサイドカーブ', side_straight: '直進',
+    meta_carves: 'カービング', meta_steps: 'ステップ',
     n_carves: '・{n}カーブ', repeatable: '・繰返し可',
     side_heel_short: 'ヒールサイド', side_toe_short: 'トゥサイド',
     reanalyze: '別の動画を解析',
@@ -821,7 +822,7 @@ const I18N = {
   en: {
     nav_mysteps: 'My Steps', nav_myline: 'My Lines', nav_help: 'How to Use',
     step1_title: 'Detect Your Carving',
-    upload_cta: 'Select a Video', upload_sub: 'mp4 / mov — AI auto-detects your board trajectory',
+    upload_cta: 'Select a Video', upload_sub: 'mp4 / mov — AI auto-detects your carving trajectory',
     skip_link: 'Design a line without a video',
     step2_title: 'Place Steps on Your Carving',
     replay_summary: '🎥 Replay analysis video',
@@ -838,6 +839,7 @@ const I18N = {
     carve_only: 'Carving only',
     finish_placeholder: 'Finish with a trick', selected_tap_remove: ' (Selected · tap to remove)',
     side_heel: 'Heelside Carve', side_toe: 'Toeside Carve', side_straight: 'Straight',
+    meta_carves: 'Carves', meta_steps: 'Steps',
     n_carves: ' · {n} carves', repeatable: ' · repeatable',
     side_heel_short: 'Heelside', side_toe_short: 'Toeside',
     reanalyze: 'Analyze another video',
@@ -1488,7 +1490,7 @@ function renderDesign(animate = false) {
 
   const stepCount = assignments.length;
   document.getElementById('designMeta').textContent =
-    `カービング: ${numSegments()} ・ ステップ: ${stepCount}${finishTrick ? ' ・ FINISH: ' + finishTrick : ''} ・ スタンス: ${stance === 'R' ? 'レギュラー' : 'グーフィー'}`;
+    `${t('meta_carves')}: ${numSegments()} ・ ${t('meta_steps')}: ${stepCount}${finishTrick ? ' ・ FINISH: ' + dispName(finishTrick) : ''} ・ ${t('stance_label')}: ${stance === 'R' ? t('stance_regular') : t('stance_goofy')}`;
 
 
   if (animate) playLine();
