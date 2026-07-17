@@ -273,7 +273,7 @@
 <div class="wrap">
 
   <div id="seedOverlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(26,29,33,.94);flex-direction:column;align-items:center;justify-content:center;padding:14px;">
-    <p style="color:#fff;font-weight:700;font-size:15.5px;margin-bottom:12px;font-family:var(--font);text-align:center;line-height:1.5;">👆 スケーター（人物）をタップしてください<br><span style="font-size:11.5px;font-weight:400;opacity:.75;">最初のフレームで位置を指定すると追跡精度が上がります</span></p>
+    <p style="color:#fff;font-weight:700;font-size:15.5px;margin-bottom:12px;font-family:var(--font);text-align:center;line-height:1.5;"><span data-i18n="seed_tap">👆 スケーター（人物）をタップしてください</span><br><span data-i18n="seed_hint" style="font-size:11.5px;font-weight:400;opacity:.75;">最初のフレームで位置を指定すると追跡精度が上がります</span></p>
     <canvas id="seedCanvas" style="max-width:96vw;max-height:72vh;width:auto;height:auto;border-radius:12px;cursor:crosshair;touch-action:none;"></canvas>
     <button id="seedCancel" style="margin-top:16px;padding:10px 26px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-family:var(--font);font-size:13px;cursor:pointer;">キャンセル</button>
   </div>
@@ -307,7 +307,7 @@
     <div class="skip-link"><a id="skipAnalysis" data-i18n="skip_link">動画なしでラインを設計する →</a></div>
 
     <div id="modelLoading" style="display:none;">
-      <p style="font-size:13px;font-weight:600;">🤖 AI姿勢認識モデルを準備中...</p>
+      <p style="font-size:13px;font-weight:600;" data-i18n="model_loading">AI姿勢認識モデルを準備中...</p>
       <p id="modelStatus" style="font-size:12px;color:var(--ink-3);">初回のみ数秒かかります</p>
     </div>
 
@@ -321,7 +321,7 @@
         <p id="progressText" style="font-size:12px;color:var(--ink-3);margin-top:6px;">解析中...</p>
       </div>
       <div class="gen-row" id="replayRow" style="display:none;">
-        <button class="btn" id="btnReplayAnalysis">🔁 解析映像を再生</button>
+        <button class="btn" id="btnReplayAnalysis" data-i18n="replay_analysis">🔁 解析映像を再生</button>
       </div>
     </div>
     </div>
@@ -329,7 +329,7 @@
 
   <!-- ②' できるステップの選択（フィルタ） -->
   <div class="section" id="secSteps" style="display:none;">
-    <button class="back-btn" id="backFromSteps">← 戻る</button>
+    <button class="back-btn" id="backFromSteps" data-i18n="back">← 戻る</button>
     <div class="step-num">My Steps</div>
     <h2 data-i18n="mysteps_title">できるステップを選ぶ</h2>
     <div class="card">
@@ -460,7 +460,7 @@
 
   <!-- 保存したライン画面 -->
   <div class="section" id="secSaved" style="display:none;">
-    <button class="back-btn" id="backFromSaved">← 戻る</button>
+    <button class="back-btn" id="backFromSaved" data-i18n="back">← 戻る</button>
     <div class="step-num">My Lines</div>
     <h2 data-i18n="myline_title">マイライン</h2>
     <div class="card" id="savedLinesCard">
@@ -472,20 +472,20 @@
 
   <!-- 使い方画面 -->
   <div class="section" id="secHelp" style="display:none;">
-    <button class="back-btn" id="backFromHelp">← 戻る</button>
+    <button class="back-btn" id="backFromHelp" data-i18n="back">← 戻る</button>
     <div class="step-num">How to Use</div>
     <h2 data-i18n="help_title">使い方</h2>
     <div class="card">
-      <h2 style="font-size:14px;">① カービングを検知する</h2>
-      <p class="note" style="margin-bottom:0;">正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。</p>
+      <h2 style="font-size:14px;" data-i18n="help_h1">① カービングを検知する</h2>
+      <p class="note" style="margin-bottom:0;" data-i18n="help_p1" data-i18n-html="1">正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。</p>
     </div>
     <div class="card" style="margin-top:14px;">
-      <h2 style="font-size:14px;">② カービングにステップを当てはめる</h2>
-      <p class="note" style="margin-bottom:0;"><b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。</p>
+      <h2 style="font-size:14px;" data-i18n="help_h2">② カービングにステップを当てはめる</h2>
+      <p class="note" style="margin-bottom:0;" data-i18n="help_p2" data-i18n-html="1"><b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。</p>
     </div>
     <div class="card" style="margin-top:14px;">
-      <h2 style="font-size:14px;">マイステップ</h2>
-      <p class="note" style="margin-bottom:0;">選んだステップだけが候補に表示されます。<br>新しいステップを習得したら「マイステップ」画面で更新してください（自動保存されます）。<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ 各ステップの詳細（ロンスケwiki）</a></p>
+      <h2 style="font-size:14px;" data-i18n="help_h3">マイステップ</h2>
+      <p class="note" style="margin-bottom:0;" data-i18n="help_p3" data-i18n-html="1">選んだステップだけが候補に表示されます。<br>新しいステップを習得したら「マイステップ」画面で更新してください（自動保存されます）。<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ 各ステップの詳細（ロンスケwiki）</a></p>
     </div>
   </div>
 
@@ -798,6 +798,36 @@ const I18N = {
     finish_placeholder: 'トリックで締める', selected_tap_remove: '（選択中・タップで外す）',
     side_heel: 'ヒールサイドカーブ', side_toe: 'トゥサイドカーブ', side_straight: '直進',
     meta_carves: 'カービング', meta_steps: 'ステップ',
+    seed_tap: '👆 スケーター（人物）をタップしてください', seed_hint: '最初のフレームで位置を指定すると追跡精度が上がります',
+    model_loading: 'AI姿勢認識モデルを準備中...',
+    replay_analysis: '🔁 解析映像を再生',
+    back: '← 戻る',
+    carve_n: 'カービング {n}',
+    video_pending: '動画準備中',
+    loading_video: '📼 動画を読み込み中...',
+    model_load_failed: 'AIモデルの読み込みに失敗しました。ネット接続を確認してください。({msg})',
+    video_load_failed: '動画を読み込めませんでした。もう一度お試しいただくか、別の動画（mp4推奨）でお試しください。',
+    model_downloading: 'AIモデルをダウンロード中...',
+    loading_check_video: '📼 チェック動画を読み込み中...',
+    steps_count: '{n} / {total} ステップ',
+    delete: '削除', open: '開く',
+    no_matching_step: 'この位置に合うステップがありません。境界を動かすか、前後のステップを外してみてください',
+    saved_confirm: '✅ 保存しました',
+    pwa_install_available: '📲 このツールをアプリとしてインストールできます',
+    pwa_ios_hint: '📲 ホーム画面に追加してアプリのように使えます：共有ボタン <b>􀈂</b> →「ホーム画面に追加」',
+    analyzing_pct: 'AI解析中... {pct}%（姿勢検出 {det}/{total}フレーム）',
+    too_few_frames: '人物を検出できたフレームが少なすぎます。全身が映る正面構図で撮り直してみてください。',
+    no_turns_detected: 'カービングの折り返しが検出できませんでした。左右にしっかり振るカービングで撮り直してみてください。',
+    check_msg_great: '🎉 ほぼ設計どおりに滑れています！',
+    check_msg_ok: '👍 概ね一致。ステップ部分で少しずれがあるかもしれません',
+    check_msg_off: '🔍 ずれが大きめです。ステップの入れ方やカービングの深さを見直してみましょう',
+    check_score: '整合率',
+    help_h1: '① カービングを検知する',
+    help_p1: '正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。',
+    help_h2: '② カービングにステップを当てはめる',
+    help_p2: '<b>◯をドラッグ</b>して位置調整、<b>軌道をダブルクリック</b>して◯を追加。<br><b>○と○の間のカービングをタップ</b>してステップを選択。<br>ステップは前後のカービングの流れに合うものだけが表示されます。',
+    help_h3: 'マイステップ',
+    help_p3: '選んだステップだけが候補に表示されます。<br>新しいステップを習得したら「マイステップ」画面で更新してください（自動保存されます）。<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ 各ステップの詳細（ロンスケwiki）</a>',
     n_carves: '・{n}カーブ', repeatable: '・繰返し可',
     side_heel_short: 'ヒールサイド', side_toe_short: 'トゥサイド',
     reanalyze: '別の動画を解析',
@@ -840,6 +870,36 @@ const I18N = {
     finish_placeholder: 'Finish with a trick', selected_tap_remove: ' (Selected · tap to remove)',
     side_heel: 'Heelside Carve', side_toe: 'Toeside Carve', side_straight: 'Straight',
     meta_carves: 'Carves', meta_steps: 'Steps',
+    seed_tap: '👆 Tap the skater (person)', seed_hint: 'Marking their position in the first frame improves tracking accuracy',
+    model_loading: 'Preparing AI pose model...',
+    replay_analysis: '🔁 Replay analysis video',
+    back: '← Back',
+    carve_n: 'Carve {n}',
+    video_pending: 'Video coming soon',
+    loading_video: '📼 Loading video...',
+    model_load_failed: 'Failed to load the AI model. Please check your internet connection. ({msg})',
+    video_load_failed: 'Could not load the video. Please try again, or use a different video (mp4 recommended).',
+    model_downloading: 'Downloading AI model...',
+    loading_check_video: '📼 Loading check video...',
+    steps_count: '{n} / {total} steps',
+    delete: 'Delete', open: 'Open',
+    no_matching_step: 'No step fits this spot. Try moving a boundary or removing a neighboring step.',
+    saved_confirm: '✅ Saved',
+    pwa_install_available: '📲 You can install this tool as an app',
+    pwa_ios_hint: '📲 Add to your home screen to use it like an app: tap the Share button <b>􀈂</b> → "Add to Home Screen"',
+    analyzing_pct: 'Analyzing... {pct}% (detected {det}/{total} frames)',
+    too_few_frames: 'Too few frames detected a person. Try re-filming with a front-on shot showing your full body.',
+    no_turns_detected: "Couldn't detect any carving turns. Try re-filming with clear side-to-side carving.",
+    check_msg_great: "🎉 You're riding it almost exactly as designed!",
+    check_msg_ok: '👍 Mostly matches. There may be some drift around the steps.',
+    check_msg_off: '🔍 There\'s a fair amount of drift. Try revisiting how you place steps or how deep you carve.',
+    check_score: 'Match Score',
+    help_h1: '① Detect Your Carving',
+    help_p1: 'Upload a video filmed head-on and AI will detect your board trajectory from your posture.<br><b>Filming tips</b>: keep the camera still, frame your full body head-on.<br>Trim the clip to start just before you begin carving, and end the line before you skate out of frame.',
+    help_h2: '② Place Steps on Your Carving',
+    help_p2: '<b>Drag a circle</b> to adjust its position, <b>double-click the line</b> to add a circle.<br><b>Tap a carve between two circles</b> to pick a step.<br>Only steps that fit the carve before and after will be shown.',
+    help_h3: 'My Steps',
+    help_p3: 'Only the steps you\'ve selected will show up as candidates.<br>Update the "My Steps" screen whenever you learn a new step (saved automatically).<br><a href="https://longboarddancingwiki.com/doku.php?id=home" target="_blank" rel="noopener" style="color:var(--cool-deep);text-decoration:underline;text-underline-offset:3px;">▶ Step details (Longboard Dancing Wiki)</a>',
     n_carves: ' · {n} carves', repeatable: ' · repeatable',
     side_heel_short: 'Heelside', side_toe_short: 'Toeside',
     reanalyze: 'Analyze another video',
@@ -874,6 +934,7 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     if (el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, t(key));
+    else if (el.dataset.i18nHtml) el.innerHTML = t(key); // 太字・リンクなどHTMLを含む文言用
     else el.textContent = t(key);
   });
   document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('on', b.dataset.lang === currentLang));
@@ -1015,7 +1076,7 @@ function renderMySteps() {
     };
     box.appendChild(c);
   });
-  document.getElementById('myStepsCount').textContent = `${masteredSteps.size} / ${RAW_STEPS.length} ステップ`;
+  document.getElementById('myStepsCount').textContent = t('steps_count', { n: masteredSteps.size, total: RAW_STEPS.length });
   renderCustomStepList();
 }
 document.getElementById('btnStepsAll').onclick = () => { masteredSteps = new Set(RAW_STEPS.map(s => s.name)); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
@@ -1031,7 +1092,7 @@ function renderCustomStepList() {
     row.className = 'se-row';
     row.innerHTML = `<span class="se-name">${cs.name} <span style="font-family:monospace;color:var(--ink-3);font-size:11px;">(${cs.seq})</span></span>`;
     const del = document.createElement('button');
-    del.className = 'del-marker'; del.style.marginLeft = '0'; del.textContent = '削除';
+    del.className = 'del-marker'; del.style.marginLeft = '0'; del.textContent = t('delete');
     del.onclick = () => deleteCustomStep(cs.name);
     row.appendChild(del);
     list.appendChild(row);
@@ -1569,7 +1630,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
       <span style="font-size:13px;">🎬</span>
       <span style="min-width:0;">
         <span style="display:block;font-size:9.5px;font-weight:700;color:#2A3138;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${it.label}</span>
-        <span style="display:block;font-size:8.5px;color:#96A0A8;">動画準備中</span>
+        <span style="display:block;font-size:8.5px;color:#96A0A8;">${t('video_pending')}</span>
       </span>
     </div>`;
   }).join('');
@@ -1889,7 +1950,7 @@ function renderPicker() {
   const side = sides[i];
   const occ = occupiedBy(i);
 
-  document.getElementById('pickerTitle').textContent = `カービング ${i + 1}`;
+  document.getElementById('pickerTitle').textContent = t('carve_n', { n: i + 1 });
 
   // サイド手動指定/切替（1・2は表示しない）
   sideBtns.style.display = 'flex';
@@ -1970,7 +2031,7 @@ function renderPicker() {
   });
 
   if (!cands.length) {
-    hint.textContent = 'この位置に合うステップがありません。境界を動かすか、前後のステップを外してみてください';
+    hint.textContent = t('no_matching_step');
   }
 }
 
@@ -2288,8 +2349,8 @@ document.getElementById('btnSaveLine').onclick = () => {
   stSet('stem_saved_lines', lines);
   renderSavedLines();
   const btn = document.getElementById('btnSaveLine');
-  btn.textContent = '✅ 保存しました';
-  setTimeout(() => { btn.textContent = '💾 ラインを保存'; }, 1600);
+  btn.textContent = t('saved_confirm');
+  setTimeout(() => { btn.textContent = t('btn_save'); }, 1600);
 };
 
 function loadLine(i) {
@@ -2349,10 +2410,10 @@ function renderSavedLines() {
     renameBtn.title = '名前を変更';
     renameBtn.onclick = () => renameLine(i);
     const loadBtn = document.createElement('button');
-    loadBtn.className = 'regen'; loadBtn.textContent = '開く';
+    loadBtn.className = 'regen'; loadBtn.textContent = t('open');
     loadBtn.onclick = () => loadLine(i);
     const delBtn = document.createElement('button');
-    delBtn.className = 'del-marker'; delBtn.style.marginLeft = '0'; delBtn.textContent = '削除';
+    delBtn.className = 'del-marker'; delBtn.style.marginLeft = '0'; delBtn.textContent = t('delete');
     delBtn.onclick = () => deleteLine(i);
     row.appendChild(renameBtn); row.appendChild(loadBtn); row.appendChild(delBtn);
     list.appendChild(row);
@@ -2486,7 +2547,7 @@ videoInput.onchange = () => {
   seedPoint = null;
   landmarkCache = [];
   document.getElementById('modelLoading').style.display = 'block';
-  document.getElementById('modelStatus').textContent = '📼 動画を読み込み中...';
+  document.getElementById('modelStatus').textContent = t('loading_video');
 
   // iOS Safari等ではloadedmetadataが発火しない/取りこぼすことがあるため、
   // イベント＋タイムアウトの二段構えで、必ず一度だけ解析を開始する。
@@ -2504,8 +2565,7 @@ videoInput.onchange = () => {
       document.getElementById('modelLoading').style.display = 'none';
       showSeedFrame();
     } catch (err) {
-      document.getElementById('modelStatus').textContent =
-        'AIモデルの読み込みに失敗しました。ネット接続を確認してください。(' + err.message + ')';
+      document.getElementById('modelStatus').textContent = t('model_load_failed', { msg: err.message });
     }
   };
   videoEl.addEventListener('loadedmetadata', begin, { once: true });
@@ -2517,8 +2577,7 @@ videoInput.onchange = () => {
     if (started || videoEl.videoWidth) { clearInterval(poll); begin(); }
     else if (tries > 25) {
       clearInterval(poll);
-      if (!started) document.getElementById('modelStatus').textContent =
-        '動画を読み込めませんでした。もう一度お試しいただくか、別の動画（mp4推奨）でお試しください。';
+      if (!started) document.getElementById('modelStatus').textContent = t('video_load_failed');
     }
   }, 200);
 
@@ -2595,7 +2654,7 @@ async function showSeedFrame() {
 
 async function loadPoseModel() {
   if (poseLandmarker) return;
-  document.getElementById('modelStatus').textContent = 'AIモデルをダウンロード中...';
+  document.getElementById('modelStatus').textContent = t('model_downloading');
   const visionModule = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14');
   const { PoseLandmarker, FilesetResolver } = visionModule;
   const vision = await FilesetResolver.forVisionTasks(
@@ -3053,7 +3112,7 @@ document.getElementById('checkInput').onchange = () => {
   area.style.display = 'block';
   document.getElementById('progressWrap').style.display = 'block';
   document.getElementById('replayRow').style.display = 'none';
-  document.getElementById('progressText').textContent = '📼 チェック動画を読み込み中...';
+  document.getElementById('progressText').textContent = t('loading_check_video');
   document.getElementById('progressBar').style.width = '0%';
   document.getElementById('checkResult').style.display = 'none';
   holder.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3168,13 +3227,13 @@ renderSavedLines();
 
   if (isIOS) {
     // iOSはbeforeinstallpromptが無いので手順を案内
-    text.innerHTML = '📲 ホーム画面に追加してアプリのように使えます：共有ボタン <b>􀈂</b> →「ホーム画面に追加」';
+    text.innerHTML = t('pwa_ios_hint');
     banner.style.display = 'flex';
   } else {
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      text.textContent = '📲 このツールをアプリとしてインストールできます';
+      text.textContent = t('pwa_install_available');
       installBtn.style.display = 'inline-block';
       banner.style.display = 'flex';
     });
