@@ -181,11 +181,20 @@
   .cchip .lv { font-size: 10px; opacity: .65; margin-left: 4px; }
   .picker-hint { font-size: 11px; color: var(--ink-3); margin-top: 9px; }
   .del-marker { font-size: 11px; color: #C05840; cursor: pointer; border: none; background: none; text-decoration: underline; margin-left: auto; }
-  .side-btns { display: flex; gap: 6px; }
+  .side-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .settings-row-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px; font-size: 13.5px; font-weight: 700; }
+  .settings-link {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    padding: 15px 18px; border: none; background: none; border-bottom: 1px solid var(--line);
+    font-family: var(--font); font-size: 13.5px; color: var(--ink); cursor: pointer; text-align: left;
+  }
+  .settings-link:last-child { border-bottom: none; }
+  .settings-arrow { color: var(--ink-3); font-size: 16px; }
+  .settings-version { text-align: center; font-size: 11px; color: var(--ink-3); margin-top: 20px; letter-spacing: .04em; }
   .side-btns button {
     padding: 5px 14px; border-radius: 999px; font-size: 12px; cursor: pointer;
     border: 1px solid var(--line); background: rgba(255,255,255,.6); color: var(--ink-2);
-    font-family: var(--font);
+    font-family: var(--font); white-space: nowrap; flex: 0 0 auto; min-width: max-content;
   }
   .side-btns button.onH { background: var(--cool-pale); color: var(--cool-deep); border-color: var(--cool); font-weight: 700; }
   .side-btns button.onT { background: var(--warm-pale); color: var(--warm-deep); border-color: var(--warm); font-weight: 700; }
@@ -450,12 +459,6 @@
         <div id="checkResult" style="display:none;margin-top:12px;"></div>
       </div>
     </details>
-
-    <details>
-      <summary data-i18n="seq_editor_summary">⚙ ステップのカービング数列を確認・修正する</summary>
-      <div class="side-editor" id="sideEditor"></div>
-      <p class="provisional" data-i18n="seq_legend">1=ヒールサイドカーブ、2=トゥサイドカーブ、0=カービングなし、*=どのカーブでも可。左から順にステップ内のカービング。スイッチ版は自動生成（1⇄2反転）。修正はセッション中のみ有効。</p>
-    </details>
   </div>
 
   <!-- 保存したライン画面 -->
@@ -489,6 +492,46 @@
     </div>
   </div>
 
+  <!-- 設定画面 -->
+  <div class="section" id="secSettings" style="display:none;">
+    <button class="back-btn" id="backFromSettings" data-i18n="back">← 戻る</button>
+    <div class="step-num">Settings</div>
+    <h2 data-i18n="settings_title">設定</h2>
+
+    <div class="card">
+      <div class="settings-row-item">
+        <span data-i18n="settings_language">言語</span>
+        <div class="lang-switch" id="langSwitchSettings" style="margin-top:0;">
+          <button data-lang="ja" class="on">日本語</button>
+          <button data-lang="en">English</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;padding:0;overflow:hidden;">
+      <button class="settings-link" id="btnUpgrade">
+        <span data-i18n="settings_upgrade">有料版にアップグレード</span><span class="settings-arrow">›</span>
+      </button>
+      <button class="settings-link" id="btnRestore">
+        <span data-i18n="settings_restore">購入を復元</span><span class="settings-arrow">›</span>
+      </button>
+    </div>
+
+    <div class="card" style="margin-top:14px;padding:0;overflow:hidden;">
+      <button class="settings-link" id="btnNews">
+        <span data-i18n="settings_news">お知らせ</span><span class="settings-arrow">›</span>
+      </button>
+      <button class="settings-link" id="btnPrivacy">
+        <span data-i18n="settings_privacy">プライバシーポリシー</span><span class="settings-arrow">›</span>
+      </button>
+      <button class="settings-link" id="btnSupport">
+        <span data-i18n="settings_support">サポート</span><span class="settings-arrow">›</span>
+      </button>
+    </div>
+
+    <p class="settings-version" id="settingsVersion"></p>
+  </div>
+
   </div><!-- /main-grid -->
 
   <nav class="tab-bar">
@@ -516,6 +559,13 @@
         <line x1="4" y1="17" x2="20" y2="17"/>
       </svg>
       <span data-i18n="nav_help">使い方</span>
+    </button>
+    <button class="tab-item" id="navSettings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3.2"/>
+        <path d="M19.4 13.5c.1-.5.1-1 0-1.5l1.6-1.3-1.5-2.6-1.9.5c-.4-.4-.8-.7-1.3-.9l-.3-2H10l-.3 2c-.5.2-.9.5-1.3.9l-1.9-.5-1.5 2.6L6.6 12c-.1.5-.1 1 0 1.5L5 14.8l1.5 2.6 1.9-.5c.4.4.8.7 1.3.9l.3 2h3.9l.3-2c.5-.2.9-.5 1.3-.9l1.9.5 1.5-2.6-1.6-1.3z"/>
+      </svg>
+      <span data-i18n="nav_settings">設定</span>
     </button>
   </nav>
 </div>
@@ -802,6 +852,16 @@ const I18N = {
     empty_videos_1: 'ステップを選ぶと', empty_videos_2: 'ここに動画が並びます',
     line_name_date: '{date} のライン',
     demo_note: '※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）',
+    nav_settings: '設定', settings_title: '設定', settings_language: '言語',
+    settings_upgrade: '有料版にアップグレード', settings_restore: '購入を復元',
+    settings_news: 'お知らせ', settings_privacy: 'プライバシーポリシー', settings_support: 'サポート',
+    settings_version: 'バージョン {v}',
+    upgrade_placeholder: '準備中です。もうしばらくお待ちください。',
+    restore_placeholder: '購入情報を確認しています…（準備中）',
+    news_placeholder: '現在お知らせはありません。',
+    support_placeholder: 'ご不明な点は開発者の公式Instagramよりお問い合わせください。',
+    free_locked: 'この機能は有料プランでご利用いただけます',
+    upgrade_cta: 'アップグレードする',
     seed_tap: '👆 スケーター（人物）をタップしてください', seed_hint: '最初のフレームで位置を指定すると追跡精度が上がります',
     model_loading: 'AI姿勢認識モデルを準備中...',
     replay_analysis: '🔁 解析映像を再生',
@@ -878,6 +938,16 @@ const I18N = {
     empty_videos_1: 'Pick a step and', empty_videos_2: 'its video will show up here',
     line_name_date: 'Line {date}',
     demo_note: '※ Demo feature: saved in this browser on this device (the app version will save to your account)',
+    nav_settings: 'Settings', settings_title: 'Settings', settings_language: 'Language',
+    settings_upgrade: 'Upgrade to Pro', settings_restore: 'Restore Purchases',
+    settings_news: 'News', settings_privacy: 'Privacy Policy', settings_support: 'Support',
+    settings_version: 'Version {v}',
+    upgrade_placeholder: 'Coming soon. Please check back shortly.',
+    restore_placeholder: 'Checking your purchase history… (coming soon)',
+    news_placeholder: 'No news at this time.',
+    support_placeholder: 'For questions, please reach out via the official Instagram account.',
+    free_locked: 'This feature is available on the Pro plan',
+    upgrade_cta: 'Upgrade',
     seed_tap: '👆 Tap the skater (person)', seed_hint: 'Marking their position in the first frame improves tracking accuracy',
     model_loading: 'Preparing AI pose model...',
     replay_analysis: '🔁 Replay analysis video',
@@ -930,6 +1000,28 @@ const I18N = {
     help_title: 'How to Use',
   },
 };
+const APP_VERSION = '1.0.0'; // アプリのバージョン表記（リリース毎に更新する）
+
+/* ============================================================
+   PRO GATE — 無料/有料プランの機能制限。
+   StoreKit連携が実装されるまでは stem_pro フラグ(localStorage)で暫定管理する。
+   実装後は isPro() の中身を実際の購入状態チェックに差し替えるだけでよい。
+   無料プランで制限する機能: マイライン保存 / 動画プレビュー / 滑走チェック /
+   マイステップ登録 / ステップのおまかせ / 解析映像を見返す
+   ============================================================ */
+function isPro() {
+  return stGet('stem_pro') === true;
+}
+/* 有料機能の実行前に呼ぶ。無料なら案内を出してfalseを返し、呼び出し側は処理を中断する */
+function requirePro() {
+  if (isPro()) return true;
+  const goSettings = confirm(t('free_locked') + '\n\n' + t('upgrade_cta') + '?');
+  if (goSettings) {
+    document.getElementById('settingsVersion').textContent = t('settings_version', { v: APP_VERSION });
+    showView('settings');
+  }
+  return false;
+}
 let currentLang = stGet('stem_lang') || 'ja';
 /* t('key') で辞書を引く。第2引数に {n:1, name:'X'} を渡すと {n}/{name} を差し替える */
 function t(key, vars) {
@@ -945,7 +1037,7 @@ function applyI18n() {
     else if (el.dataset.i18nHtml) el.innerHTML = t(key); // 太字・リンクなどHTMLを含む文言用
     else el.textContent = t(key);
   });
-  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('on', b.dataset.lang === currentLang));
+  document.querySelectorAll('#langSwitch button, #langSwitchSettings button').forEach(b => b.classList.toggle('on', b.dataset.lang === currentLang));
 }
 function setLang(lang) {
   currentLang = lang;
@@ -956,7 +1048,7 @@ function setLang(lang) {
   renderMySteps();
   renderSavedLines();
 }
-document.getElementById('langSwitch').querySelectorAll('button').forEach(b => {
+document.querySelectorAll('#langSwitch button, #langSwitchSettings button').forEach(b => {
   b.onclick = () => setLang(b.dataset.lang);
 });
 
@@ -1072,10 +1164,12 @@ function renderMySteps() {
     if (hasVideo(s.name)) {
       c.querySelector('.chip-play').onclick = (e) => {
         e.stopPropagation(); // チップ本体のトグルを発火させない
+        if (!requirePro()) return;
         showMyStepsPreview(s.name);
       };
     }
     c.onclick = () => {
+      if (!requirePro()) return;
       if (masteredSteps.has(s.name)) masteredSteps.delete(s.name);
       else masteredSteps.add(s.name);
       saveMySteps();
@@ -1087,8 +1181,8 @@ function renderMySteps() {
   document.getElementById('myStepsCount').textContent = t('steps_count', { n: masteredSteps.size, total: RAW_STEPS.length });
   renderCustomStepList();
 }
-document.getElementById('btnStepsAll').onclick = () => { masteredSteps = new Set(RAW_STEPS.map(s => s.name)); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
-document.getElementById('btnStepsNone').onclick = () => { masteredSteps = new Set(); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
+document.getElementById('btnStepsAll').onclick = () => { if (!requirePro()) return; masteredSteps = new Set(RAW_STEPS.map(s => s.name)); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
+document.getElementById('btnStepsNone').onclick = () => { if (!requirePro()) return; masteredSteps = new Set(); saveMySteps(); renderMySteps(); renderDesign(); renderPicker(); };
 
 /* カスタムステップの一覧・追加・削除 */
 function renderCustomStepList() {
@@ -1662,6 +1756,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
     box.onclick = (e) => {
       if (e.target.classList.contains('vbox-close')) { collapseBox(box); return; }
       if (box.classList.contains('expanded')) return; // 拡大中の再タップは無視（閉じるは×で）
+      if (!requirePro()) return;
       expandBox(box);
     };
   });
@@ -1870,6 +1965,12 @@ function showPickerPreview(stepName) {
   const pv = document.getElementById('pickerPreview');
   if (!stepName) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
   if (!hasVideo(stepName)) { pv.style.display = 'none'; pv.innerHTML = ''; return; }
+  if (!isPro()) {
+    // 無料プランでは動画プレビュー自体を出さない（自動表示のためアラートは出さず静かに隠す）
+    pv.style.display = 'block';
+    pv.innerHTML = `<p class="picker-hint" style="margin:0;">${t('free_locked')}</p>`;
+    return;
+  }
   const src = videoSrc(stepName);
   const mirror = shouldMirrorVideo(stepName); // FK版は専用撮影素材のためスイッチ名では反転しない
   pv.style.display = 'block';
@@ -1905,6 +2006,7 @@ function renderPicker() {
     dice.className = 'cchip dice';
     dice.textContent = t('dice_pick');
     dice.onclick = () => {
+      if (!requirePro()) return;
       pushHistory();
       finishTrick = TRICKS[Math.floor(Math.random() * TRICKS.length)].name;
       renderDesign(); renderPicker();
@@ -2017,6 +2119,7 @@ function renderPicker() {
     dice.className = 'cchip dice';
     dice.textContent = t('dice_short');
     dice.onclick = () => {
+      if (!requirePro()) return;
       // おまかせ難易度の配分を反映
       const DIST = [[0.85,0.15,0],[0.4,0.5,0.1],[0.2,0.6,0.2]][randDiff];
       const r = Math.random();
@@ -2289,7 +2392,7 @@ bindSeg('diffSeg', v => { randDiff = +v; });
    ① home: 動画インポート＆検出 / ② design: 俯瞰図メイン
    サブ画面: mysteps / saved / help（戻るで直前のメイン画面へ）
    ============================================================ */
-const VIEWS = { home: 'sec1', design: 'sec2', mysteps: 'secSteps', saved: 'secSaved', help: 'secHelp' };
+const VIEWS = { home: 'sec1', design: 'sec2', mysteps: 'secSteps', saved: 'secSaved', help: 'secHelp', settings: 'secSettings' };
 let lastMain = 'home';
 function showView(name) {
   Object.values(VIEWS).forEach(id => {
@@ -2304,12 +2407,38 @@ function showView(name) {
 document.getElementById('navMySteps').onclick = () => { renderMySteps(); showView('mysteps'); };
 document.getElementById('navSaved').onclick = () => { renderSavedLines(); showView('saved'); };
 document.getElementById('navHelp').onclick = () => showView('help');
+document.getElementById('navSettings').onclick = () => {
+  document.getElementById('settingsVersion').textContent = t('settings_version', { v: APP_VERSION });
+  showView('settings');
+};
 document.getElementById('backFromSteps').onclick = () => {
   if (document.getElementById('sec2') && lastMain === 'design') { renderDesign(); renderPicker(); }
   showView(lastMain);
 };
 document.getElementById('backFromSaved').onclick = () => showView(lastMain);
 document.getElementById('backFromHelp').onclick = () => showView(lastMain);
+document.getElementById('backFromSettings').onclick = () => showView(lastMain);
+
+/* ============================================================
+   設定画面の各項目
+   ============================================================ */
+document.getElementById('btnUpgrade').onclick = () => {
+  // TODO: StoreKit連携実装後、実際の課金フローに置き換える
+  alert(t('upgrade_placeholder'));
+};
+document.getElementById('btnRestore').onclick = () => {
+  // TODO: StoreKit連携実装後、購入復元処理に置き換える
+  alert(t('restore_placeholder'));
+};
+document.getElementById('btnNews').onclick = () => {
+  alert(t('news_placeholder'));
+};
+document.getElementById('btnPrivacy').onclick = () => {
+  window.open('https://ryoogasawara981.github.io/stem-line-designer/privacy.html', '_blank');
+};
+document.getElementById('btnSupport').onclick = () => {
+  alert(t('support_placeholder'));
+};
 
 document.getElementById('skipAnalysis').onclick = () => {
   analyzedPath = null;
@@ -2341,6 +2470,7 @@ document.getElementById('btnUndo').onclick = () => undo();
 function getSavedLines() { return stGet('stem_saved_lines') || []; }
 
 document.getElementById('btnSaveLine').onclick = () => {
+  if (!requirePro()) return;
   const lines = getSavedLines();
   const d = new Date();
   const name = t('line_name_date', { date: `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` });
@@ -2431,6 +2561,7 @@ function renderSavedLines() {
 /* ステップを全ておまかせ: 空いている区間を先頭から順にランダムで埋める
    （サイド整合・スイッチ解禁ルールを守る。最初の区間はプレカーブ優先）*/
 document.getElementById('btnRandomAll').onclick = () => {
+  if (!requirePro()) return;
   const sides = _segSideCache || [];
   if (sides.some(s => s === null)) {
     alert(t('alert_unknown_side'));
@@ -2489,6 +2620,7 @@ document.getElementById('btnClear').onclick = () => {
    ============================================================ */
 function renderSideEditor() {
   const el = document.getElementById('sideEditor');
+  if (!el) return; // アプリ版では数列エディタUI自体を非表示にしているため
   el.innerHTML = '';
   RAW_STEPS.forEach(s => {
     const row = document.createElement('div');
@@ -2903,6 +3035,7 @@ async function analyzeVideo() {
 
 /* 解析結果の再生（キャッシュから再描画・再推論なし） */
 document.getElementById('btnReplayAnalysis').onclick = async () => {
+  if (!requirePro()) return;
   if (!landmarkCache.length) return;
   const ov = document.getElementById('overlayCanvas');
   const octx = ov.getContext('2d');
@@ -3099,6 +3232,7 @@ checkVideo.muted = true; checkVideo.playsInline = true; checkVideo.preload = 'au
 let _mainState = null; // チェック中に退避する通常解析の状態
 
 document.getElementById('btnCheckUpload').onclick = () => {
+  if (!requirePro()) return;
   if (!analyzedPath) { alert('先に動画を解析してラインを作ってください'); return; }
   document.getElementById('checkInput').value = '';
   document.getElementById('checkInput').click();
