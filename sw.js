@@ -2,7 +2,7 @@
    アプリのシェルをキャッシュしてオフライン起動を可能にする。
    MediaPipeのCDNや解析はオンライン必須だが、UIの起動自体は速くなる。
    更新時は CACHE 名のバージョンを上げること（例: stem-v2）。*/
-const CACHE = 'stem-v22';
+const CACHE = 'stem-v23';
 const ASSETS = [
   './',
   './index.html',

@@ -345,11 +345,11 @@
     </div>
 
     <div class="card" style="margin-top:16px;">
-      <div class="card-head"><span class="badge orange">CUSTOM STEP</span></div>
-      <p class="picker-hint" style="margin:0 0 10px;">オリジナルのステップを追加できます。カービングは 1=ヒール、2=トゥ、0=カービングなし を左から順に（例: 21）</p>
+      <div class="card-head"><span class="badge orange" data-i18n="custom_step_badge">CUSTOM STEP</span></div>
+      <p class="picker-hint" style="margin:0 0 10px;" data-i18n="custom_hint">オリジナルのステップを追加できます。カービングは 1=ヒール、2=トゥ、0=カービングなし を左から順に（例: 21）</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <input id="customStepName" placeholder="ステップ名" style="flex:2;min-width:140px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:var(--font);font-size:13px;">
-        <input id="customStepSeq" placeholder="カービング (例: 21)" style="flex:1;min-width:110px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:monospace;font-size:13px;">
+        <input id="customStepName" data-i18n="custom_name_ph" data-i18n-attr="placeholder" placeholder="ステップ名" style="flex:2;min-width:140px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:var(--font);font-size:13px;">
+        <input id="customStepSeq" data-i18n="custom_seq_ph" data-i18n-attr="placeholder" placeholder="カービング (例: 21)" style="flex:1;min-width:110px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:monospace;font-size:13px;">
         <button class="btn primary" id="btnAddCustomStep" style="padding:10px 20px;" data-i18n="custom_add">追加</button>
       </div>
       <div id="customStepList" style="margin-top:10px;"></div>
@@ -396,7 +396,7 @@
     <div class="card">
       <div class="card-head">
         <span class="badge orange" id="modeBadge">YOUR LINE</span>
-        <button class="regen" id="btnReAnalyze">別の動画を解析</button>
+        <button class="regen" id="btnReAnalyze" data-i18n="reanalyze">別の動画を解析</button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
         <button class="btn primary" id="btnReplay" style="padding:10px 18px;font-size:12.5px;flex:none;" data-i18n="btn_replay">▶ ラインを再生</button>
@@ -411,9 +411,9 @@
         <div class="picker-head">
           <span id="pickerTitle" class="picker-title"></span>
           <div class="side-btns" id="sideBtns" style="display:none;">
-            <button id="sideH">ヒールサイドカーブ</button>
-            <button id="sideT">トゥサイドカーブ</button>
-            <button id="sideS">直進</button>
+            <button id="sideH" data-i18n="side_heel">ヒールサイドカーブ</button>
+            <button id="sideT" data-i18n="side_toe">トゥサイドカーブ</button>
+            <button id="sideS" data-i18n="side_straight">直進</button>
           </div>
           <button class="del-marker" id="btnDelMarker" style="display:none;">この境界を削除</button>
         </div>
@@ -452,9 +452,9 @@
     </details>
 
     <details>
-      <summary>⚙ ステップのカービング数列を確認・修正する</summary>
+      <summary data-i18n="seq_editor_summary">⚙ ステップのカービング数列を確認・修正する</summary>
       <div class="side-editor" id="sideEditor"></div>
-      <p class="provisional">1=ヒールサイドカーブ、2=トゥサイドカーブ、0=カービングなし、*=どのカーブでも可。左から順にステップ内のカービング。スイッチ版は自動生成（1⇄2反転）。修正はセッション中のみ有効。</p>
+      <p class="provisional" data-i18n="seq_legend">1=ヒールサイドカーブ、2=トゥサイドカーブ、0=カービングなし、*=どのカーブでも可。左から順にステップ内のカービング。スイッチ版は自動生成（1⇄2反転）。修正はセッション中のみ有効。</p>
     </details>
   </div>
 
@@ -689,7 +689,8 @@ const TRICKS = [
   { name:'タイタンフリップ', nameEn:'Titan Flip', cat:'Hand', level:'上級+' },
 ];
 
-const SIDE_LABEL = { H: 'ヒールサイド', T: 'トゥサイド', S: '直進' };
+// 表示用のサイド名は言語に応じて解決する（定数ではなく関数）
+const sideLabel = s => s === 'H' ? t('side_heel_short') : s === 'T' ? t('side_toe_short') : t('side_straight');
 const flip = s => s === 'H' ? 'T' : 'H';
 const digitToSide = d => d === '1' ? 'H' : 'T';
 const sideToDigit = s => s === 'H' ? '1' : '2';
@@ -697,7 +698,8 @@ const sideToDigit = s => s === 'H' ? '1' : '2';
 /* スタンスが反転するステップ（このステップの後はスイッチ版のみ選択可能になる）*/
 const STANCE_INVERTERS = ['180ステップ','BS180ステップ','バックフット180ステップ','ルックバック','ピルエット540','ベンドドロップ'];
 function isInverter(name) {
-  const base = name.startsWith('スイッチ') ? name.slice(4) : name;
+  // isSwitchVariantはこの位置より後で定義されるが、呼び出しは実行時なので問題ない
+  const base = isSwitchVariant(name) ? name.slice(4) : name;
   return STANCE_INVERTERS.includes(base);
 }
 
@@ -794,6 +796,26 @@ const I18N = {
     myline_title: 'マイライン', myline_empty: 'まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。',
     carve_only: 'カービングのみ',
     finish_placeholder: 'トリックで締める', selected_tap_remove: '（選択中・タップで外す）',
+    side_heel: 'ヒールサイドカーブ', side_toe: 'トゥサイドカーブ', side_straight: '直進',
+    n_carves: '・{n}カーブ', repeatable: '・繰返し可',
+    side_heel_short: 'ヒールサイド', side_toe_short: 'トゥサイド',
+    reanalyze: '別の動画を解析',
+    custom_step_badge: 'カスタムステップ',
+    custom_hint: 'オリジナルのステップを追加できます。カービングは 1=ヒール、2=トゥ、0=カービングなし を左から順に（例: 21）',
+    custom_name_ph: 'ステップ名', custom_seq_ph: 'カービング (例: 21)',
+    finish_title: 'FINISH — ラインを締めるトリック',
+    finish_hint: 'wikiのAir・Slide・Handカテゴリ（Plant・Balanceは今後追加）',
+    finish_none: 'トリックなしで流す', dice_pick: '🎲 おまかせで選ぶ', dice_short: '🎲 おまかせ',
+    boundary_title: '境界 {n} — ドラッグで位置を調整できます',
+    boundary_hint: '境界を削除するとカービングが結合されます',
+    seg_unknown_hint: 'このカービングは向きを自動判定できませんでした。ヒール/トゥ/直進を指定するとステップ候補が表示されます',
+    seg_straight_title: '区間 {n} — 直進（助走）',
+    seg_part_of: 'このカービングは「{name}」の一部です', seg_remove: '「{name}」を外す',
+    hint_switch: '⚡ スイッチスタンス中 — スイッチ版のステップのみ選択できます（複数カーブにまたがるステップは自動で区間を消費）',
+    hint_normal: 'ここから始められるステップ（複数のカービングにまたがるステップは自動で区間を消費します）',
+    seq_legend: '1=ヒールサイドカーブ、2=トゥサイドカーブ、0=カービングなし、*=どのカーブでも可。左から順にステップ内のカービング。スイッチ版は自動生成（1⇄2反転）。修正はセッション中のみ有効。',
+    seq_editor_summary: '⚙ ステップのカービング数列を確認・修正する',
+    alert_unknown_side: '向きを判定できなかったカービング（?マーク）があります。先にタップしてヒール/トゥ/直進を指定してください。',
     help_title: '使い方',
   },
   en: {
@@ -815,11 +837,36 @@ const I18N = {
     myline_title: 'My Lines', myline_empty: 'No saved lines yet. Use "💾 Save Line" on the design screen.',
     carve_only: 'Carving only',
     finish_placeholder: 'Finish with a trick', selected_tap_remove: ' (Selected · tap to remove)',
+    side_heel: 'Heelside Carve', side_toe: 'Toeside Carve', side_straight: 'Straight',
+    n_carves: ' · {n} carves', repeatable: ' · repeatable',
+    side_heel_short: 'Heelside', side_toe_short: 'Toeside',
+    reanalyze: 'Analyze another video',
+    custom_step_badge: 'CUSTOM STEP',
+    custom_hint: 'Add your own step. Enter the carves in order: 1=Heelside, 2=Toeside, 0=no carve (e.g. 21)',
+    custom_name_ph: 'Step name', custom_seq_ph: 'Carves (e.g. 21)',
+    finish_title: 'FINISH — a trick to close your line',
+    finish_hint: 'Air / Slide / Hand categories from the wiki (Plant & Balance coming later)',
+    finish_none: 'No trick — just roll out', dice_pick: '🎲 Pick for me', dice_short: '🎲 Random',
+    boundary_title: 'Boundary {n} — drag to adjust its position',
+    boundary_hint: 'Removing a boundary merges the carves',
+    seg_unknown_hint: "Couldn't detect this carve's direction automatically. Choose Heelside / Toeside / Straight to see step options.",
+    seg_straight_title: 'Section {n} — Straight (run-up)',
+    seg_part_of: 'This carve is part of "{name}"', seg_remove: 'Remove "{name}"',
+    hint_switch: '⚡ Riding switch — only switch steps can be selected (multi-carve steps use up sections automatically)',
+    hint_normal: 'Steps you can start here (multi-carve steps use up sections automatically)',
+    seq_legend: '1=Heelside carve, 2=Toeside carve, 0=no carve, *=any carve. Listed in order within the step. Switch versions are generated automatically (1⇄2 flipped). Edits apply to this session only.',
+    seq_editor_summary: '⚙ Check & edit the carve sequence of each step',
+    alert_unknown_side: 'Some carves (marked ?) could not be detected. Tap them first and choose Heelside / Toeside / Straight.',
     help_title: 'How to Use',
   },
 };
 let currentLang = stGet('stem_lang') || 'ja';
-function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.ja[key] || key; }
+/* t('key') で辞書を引く。第2引数に {n:1, name:'X'} を渡すと {n}/{name} を差し替える */
+function t(key, vars) {
+  let s = (I18N[currentLang] && I18N[currentLang][key]) || I18N.ja[key] || key;
+  if (vars) Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
+  return s;
+}
 function applyI18n() {
   document.documentElement.lang = currentLang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -842,7 +889,15 @@ document.getElementById('langSwitch').querySelectorAll('button').forEach(b => {
   b.onclick = () => setLang(b.dataset.lang);
 });
 
-const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
+/* 「スイッチ〇〇」という名前でも、それ自体がRAW_STEPSに存在する正式なステップ
+   （例: スイッチステップ）は自動生成のスイッチ版ではない。
+   名前の先頭だけで判定すると「スイッチステップ」→「ステップ」と誤って削ってしまうため、
+   まず正式ステップかどうかを確認してから判定する。 */
+function isSwitchVariant(n) {
+  if (RAW_STEPS.some(s => s.name === n)) return false; // それ自体が正式なステップ
+  return n.startsWith('スイッチ');
+}
+const baseName = n => isSwitchVariant(n) ? n.slice(4) : n;
 
 /* 表示名の解決: 英語モードでは対応する nameEn があればそれを使い、
    （カスタムステップ等）未登録のものは日本語名のままフォールバックする。
@@ -851,6 +906,18 @@ function dispName(japaneseName) {
   if (currentLang !== 'en') return japaneseName;
   const hit = ALL_STEPS.find(s => s.name === japaneseName) || TRICKS.find(t => t.name === japaneseName);
   return (hit && hit.nameEn) ? hit.nameEn : japaneseName;
+}
+
+/* 難易度ラベル（初級/中級+ 等）の表示名。未知の値（カスタム等）はそのまま返す */
+const LEVEL_EN = {
+  '初級': 'Beginner', '初級+': 'Beginner+',
+  '中級': 'Intermediate', '中級+': 'Intermediate+', '中級~': 'Intermediate~',
+  '上級': 'Advanced', '上級+': 'Advanced+',
+  'カスタム': 'Custom',
+};
+function dispLevel(level) {
+  if (currentLang !== 'en') return level;
+  return LEVEL_EN[level] || level;
 }
 
 /* ============================================================
@@ -891,7 +958,7 @@ function videoSrc(stepName) { return 'videos/' + videoFileFor(stepName) + '.mp4'
    ①スイッチ版（元動画を使い回す）か、②現在のスタンスがグーフィーの場合は左右反転して表示する。
    両方該当する場合（グーフィー中のスイッチ版）は反転が二重に打ち消し合い、結果的に反転なしになる。 */
 function shouldMirrorVideo(stepName) {
-  const isSwitchName = stepName.startsWith('スイッチ');
+  const isSwitchName = isSwitchVariant(stepName);
   const isGoofy = stance === 'G';
   return isSwitchName !== isGoofy; // XOR
 }
@@ -930,7 +997,7 @@ function renderMySteps() {
     const vmark = hasVideo(s.name)
       ? `<span class="chip-play" title="動画プレビュー" style="margin-right:4px;cursor:pointer;">🎬</span>`
       : '';
-    c.innerHTML = `${vmark}${dispName(s.name)}<span class="lv">${s.level}</span>`;
+    c.innerHTML = `${vmark}${dispName(s.name)}<span class="lv">${dispLevel(s.level)}</span>`;
     if (hasVideo(s.name)) {
       c.querySelector('.chip-play').onclick = (e) => {
         e.stopPropagation(); // チップ本体のトグルを発火させない
@@ -1755,17 +1822,17 @@ function renderPicker() {
   showPickerPreview(null); // 選択が変わったらリセット(チップタップで表示)
 
   if (selected.type === 'finish') {
-    document.getElementById('pickerTitle').textContent = 'FINISH — ラインを締めるトリック';
-    hint.textContent = 'wikiのAir・Slide・Handカテゴリ（Plant・Balanceは今後追加）';
+    document.getElementById('pickerTitle').textContent = t('finish_title');
+    hint.textContent = t('finish_hint');
     const none = document.createElement('span');
     none.className = 'cchip' + (finishTrick == null ? ' on' : '');
-    none.textContent = 'トリックなしで流す';
+    none.textContent = t('finish_none');
     none.onclick = () => { pushHistory(); finishTrick = null; renderDesign(); renderPicker(); };
     chips.appendChild(none);
     // 部分ランダム
     const dice = document.createElement('span');
     dice.className = 'cchip dice';
-    dice.textContent = '🎲 おまかせで選ぶ';
+    dice.textContent = t('dice_pick');
     dice.onclick = () => {
       pushHistory();
       finishTrick = TRICKS[Math.floor(Math.random() * TRICKS.length)].name;
@@ -1777,7 +1844,7 @@ function renderPicker() {
         const c = document.createElement('span');
         c.className = 'cchip' + (finishTrick === t.name ? ' on' : '');
         const vmark = hasVideo(t.name) ? ' 🎬' : '';
-        c.innerHTML = `${dispName(t.name)}${vmark}<span class="lv">${t.cat}・${t.level}</span>`;
+        c.innerHTML = `${dispName(t.name)}${vmark}<span class="lv">${t.cat}・${dispLevel(t.level)}</span>`;
         c.onclick = () => { pushHistory(); finishTrick = t.name; renderDesign(); renderPicker(); };
         chips.appendChild(c);
       });
@@ -1787,8 +1854,8 @@ function renderPicker() {
   }
 
   if (selected.type === 'boundary') {
-    document.getElementById('pickerTitle').textContent = `境界 ${selected.i} — ドラッグで位置を調整できます`;
-    hint.textContent = '境界を削除するとカービングが結合されます';
+    document.getElementById('pickerTitle').textContent = t('boundary_title', { n: selected.i });
+    hint.textContent = t('boundary_hint');
     if (analyzedPath) {
       delBtn.style.display = 'inline';
       delBtn.onclick = () => {
@@ -1834,31 +1901,29 @@ function renderPicker() {
   bS.onclick = () => { pushHistory(); sideOverrides[i] = 'S'; clearHere(); renderDesign(); renderPicker(); };
 
   if (side === null) {
-    hint.textContent = 'このカービングは向きを自動判定できませんでした。ヒール/トゥ/直進を指定するとステップ候補が表示されます';
+    hint.textContent = t('seg_unknown_hint');
     return;
   }
   if (side === 'S') {
-    document.getElementById('pickerTitle').textContent = `区間 ${i + 1} — 直進（助走）`;
+    document.getElementById('pickerTitle').textContent = t('seg_straight_title', { n: i + 1 });
   }
 
   if (occ && occ.seg !== i) {
-    hint.textContent = `このカービングは「${dispName(occ.name)}」の一部です`;
+    hint.textContent = t('seg_part_of', { name: dispName(occ.name) });
     const rm = document.createElement('span');
     rm.className = 'cchip';
-    rm.textContent = `「${dispName(occ.name)}」を外す`;
+    rm.textContent = t('seg_remove', { name: dispName(occ.name) });
     rm.onclick = () => { assignments = assignments.filter(a => a !== occ); renderDesign(); renderPicker(); };
     chips.appendChild(rm);
     return;
   }
 
   const oriHere = orientationAt(i);
-  hint.textContent = oriHere === -1
-    ? '⚡ スイッチスタンス中 — スイッチ版のステップのみ選択できます（複数カーブにまたがるステップは自動で区間を消費）'
-    : 'ここから始められるステップ（複数のカービングにまたがるステップは自動で区間を消費します）';
+  hint.textContent = oriHere === -1 ? t('hint_switch') : t('hint_normal');
 
   const carve = document.createElement('span');
   carve.className = 'cchip' + (!occ ? ' on' : '');
-  carve.textContent = 'カービングのみ';
+  carve.textContent = t('carve_only');
   carve.onclick = () => {
     assignments = assignments.filter(a => a.seg !== i);
     renderDesign(); renderPicker();
@@ -1879,7 +1944,7 @@ function renderPicker() {
   if (cands.length) {
     const dice = document.createElement('span');
     dice.className = 'cchip dice';
-    dice.textContent = '🎲 おまかせ';
+    dice.textContent = t('dice_short');
     dice.onclick = () => {
       // おまかせ難易度の配分を反映
       const DIST = [[0.85,0.15,0],[0.4,0.5,0.1],[0.2,0.6,0.2]][randDiff];
@@ -1897,7 +1962,7 @@ function renderPicker() {
     c.className = 'cchip';
     const span = stepSpan(s, matchSeqAt(s, i, sides));
     const vmark = hasVideo(s.name) ? ' 🎬' : '';
-    c.innerHTML = `${dispName(s.name)}${vmark}<span class="lv">${s.level}${span > 1 ? '・' + span + 'カーブ' : ''}${s.rep ? '↻' : ''}</span>`;
+    c.innerHTML = `${dispName(s.name)}${vmark}<span class="lv">${dispLevel(s.level)}${span > 1 ? t('n_carves', { n: span }) : ''}${s.rep ? '↻' : ''}</span>`;
     c.onclick = () => placeStep(i, s);
     chips.appendChild(c);
   });
@@ -2297,7 +2362,7 @@ function renderSavedLines() {
 document.getElementById('btnRandomAll').onclick = () => {
   const sides = _segSideCache || [];
   if (sides.some(s => s === null)) {
-    alert('向きを判定できなかったカービング（?マーク）があります。先にタップしてヒール/トゥ/直進を指定してください。');
+    alert(t('alert_unknown_side'));
     return;
   }
   pushHistory();
@@ -2357,7 +2422,7 @@ function renderSideEditor() {
   RAW_STEPS.forEach(s => {
     const row = document.createElement('div');
     row.className = 'se-row';
-    row.innerHTML = `<span class="se-name">${dispName(s.name)} <span style="color:var(--ink-3);font-size:10.5px;">${s.level}${s.rep ? '・繰返し可' : ''}</span></span>`;
+    row.innerHTML = `<span class="se-name">${dispName(s.name)} <span style="color:var(--ink-3);font-size:10.5px;">${dispLevel(s.level)}${s.rep ? t('repeatable') : ''}</span></span>`;
     const input = document.createElement('input');
     input.className = 'se-seq';
     input.value = s.seq;
