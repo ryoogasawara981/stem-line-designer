@@ -60,6 +60,13 @@
   .brand h1 { font-size: 32px; letter-spacing: .16em; font-weight: 700; }
   .brand span { font-size: 11.5px; color: var(--ink-3); letter-spacing: .22em; font-weight: 700; }
   .tagline { font-size: 13px; color: var(--ink-2); margin-top: 6px; letter-spacing: .04em; }
+  .lang-switch { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+  .lang-switch button {
+    padding: 5px 13px; border-radius: 999px; font-size: 11px; cursor: pointer;
+    border: 1px solid var(--glass-border); background: var(--glass); color: var(--ink-2);
+    font-family: var(--font); font-weight: 700;
+  }
+  .lang-switch button.on { background: var(--cool-deep); color: #fff; border-color: transparent; }
   .tab-bar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
     display: flex; justify-content: center; align-items: stretch; gap: 8vw;
@@ -279,6 +286,10 @@
 
   <header>
     <div class="brand"><h1>STEM</h1><span>LINE DESIGNER</span></div>
+    <div class="lang-switch" id="langSwitch">
+      <button data-lang="ja" class="on">日本語</button>
+      <button data-lang="en">English</button>
+    </div>
   </header>
 
   <div class="main-grid" id="mainGrid">
@@ -286,14 +297,14 @@
   <!-- ① カービング検知 -->
   <div class="section" id="sec1">
     <div class="step-num">Step 1 — Carving</div>
-    <h2>カービングを検知する</h2>
+    <h2 data-i18n="step1_title">カービングを検知する</h2>
     <div id="uploadZone" class="upload-zone">
       <input type="file" id="videoInput" accept="video/*" style="display:none;">
       <div class="uz-plus">+</div>
-      <div class="uz-text">動画を選択</div>
+      <div class="uz-text" data-i18n="upload_cta">動画を選択</div>
       <div class="uz-sub">mp4 / mov — AIがボード軌道を自動検出</div>
     </div>
-    <div class="skip-link"><a id="skipAnalysis">動画なしでラインを設計する →</a></div>
+    <div class="skip-link"><a id="skipAnalysis" data-i18n="skip_link">動画なしでラインを設計する →</a></div>
 
     <div id="modelLoading" style="display:none;">
       <p style="font-size:13px;font-weight:600;">🤖 AI姿勢認識モデルを準備中...</p>
@@ -320,13 +331,13 @@
   <div class="section" id="secSteps" style="display:none;">
     <button class="back-btn" id="backFromSteps">← 戻る</button>
     <div class="step-num">My Steps</div>
-    <h2>できるステップを選ぶ</h2>
+    <h2 data-i18n="mysteps_title">できるステップを選ぶ</h2>
     <div class="card">
       <div class="card-head">
         <span class="badge orange" id="myStepsCount"></span>
         <div style="display:flex;gap:12px;">
-          <button class="regen" id="btnStepsAll">全て選択</button>
-          <button class="regen" id="btnStepsNone">全て解除</button>
+          <button class="regen" id="btnStepsAll" data-i18n="mysteps_all">全て選択</button>
+          <button class="regen" id="btnStepsNone" data-i18n="mysteps_none">全て解除</button>
         </div>
       </div>
       <div class="choice-chips" id="myStepsChips" style="max-height:300px;"></div>
@@ -339,7 +350,7 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <input id="customStepName" placeholder="ステップ名" style="flex:2;min-width:140px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:var(--font);font-size:13px;">
         <input id="customStepSeq" placeholder="カービング (例: 21)" style="flex:1;min-width:110px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.6);font-family:monospace;font-size:13px;">
-        <button class="btn primary" id="btnAddCustomStep" style="padding:10px 20px;">追加</button>
+        <button class="btn primary" id="btnAddCustomStep" style="padding:10px 20px;" data-i18n="custom_add">追加</button>
       </div>
       <div id="customStepList" style="margin-top:10px;"></div>
     </div>
@@ -349,19 +360,19 @@
   <!-- ③ ラインデザイン -->
   <div class="section" id="sec2" style="display:none;">
     <div class="step-num">Step 2 — Design</div>
-    <h2>カービングにステップを当てはめる</h2>
+    <h2 data-i18n="step2_title">カービングにステップを当てはめる</h2>
 
     <details id="replayDetails" style="margin:0 0 14px;display:none;">
-      <summary>🎥 解析映像を見返す</summary>
+      <summary data-i18n="replay_summary">🎥 解析映像を見返す</summary>
       <div id="replayHolder" style="margin-top:10px;"></div>
     </details>
 
     <div class="settings-row">
       <div class="setting">
-        <label>スタンス</label>
+        <label data-i18n="stance_label">スタンス</label>
         <div class="seg" id="stanceSeg">
-          <button class="on" data-v="R">レギュラー</button>
-          <button data-v="G">グーフィー</button>
+          <button class="on" data-v="R" data-i18n="stance_regular">レギュラー</button>
+          <button data-v="G" data-i18n="stance_goofy">グーフィー</button>
         </div>
       </div>
       <div class="setting" id="startSetting">
@@ -388,8 +399,8 @@
         <button class="regen" id="btnReAnalyze">別の動画を解析</button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        <button class="btn primary" id="btnReplay" style="padding:10px 18px;font-size:12.5px;flex:none;">▶ ラインを再生</button>
-        <button class="btn" id="btnUndo" style="padding:10px 18px;font-size:12.5px;flex:none;">↩ 戻す</button>
+        <button class="btn primary" id="btnReplay" style="padding:10px 18px;font-size:12.5px;flex:none;" data-i18n="btn_replay">▶ ラインを再生</button>
+        <button class="btn" id="btnUndo" style="padding:10px 18px;font-size:12.5px;flex:none;" data-i18n="btn_undo">↩ 戻す</button>
       </div>
       <div id="svgWrap" style="position:relative;">
         <svg id="designSvg" viewBox="0 0 720 980" aria-label="ライン設計図（俯瞰）"></svg>
@@ -415,26 +426,26 @@
 
     <div class="settings-row" style="margin-top:16px;margin-bottom:0;">
       <div class="setting" style="max-width:280px;">
-        <label>おまかせの難易度</label>
+        <label data-i18n="diff_label">おまかせの難易度</label>
         <div class="seg" id="diffSeg">
-          <button data-v="0">初級</button>
-          <button class="on" data-v="1">中級</button>
-          <button data-v="2">上級</button>
+          <button data-v="0" data-i18n="diff_beginner">初級</button>
+          <button class="on" data-v="1" data-i18n="diff_inter">中級</button>
+          <button data-v="2" data-i18n="diff_advanced">上級</button>
         </div>
       </div>
     </div>
     <div class="gen-row">
-      <button class="btn" id="btnRandomAll">🎲 ステップを全ておまかせ</button>
-      <button class="btn" id="btnClear">リセット</button>
-      <button class="btn" id="btnSaveLine">💾 ラインを保存</button>
+      <button class="btn" id="btnRandomAll" data-i18n="btn_random">🎲 ステップを全ておまかせ</button>
+      <button class="btn" id="btnClear" data-i18n="btn_clear">リセット</button>
+      <button class="btn" id="btnSaveLine" data-i18n="btn_save">💾 ラインを保存</button>
     </div>
 
     <details style="margin-top:18px;">
-      <summary>🎯 滑走チェック — ステップを入れて滑った動画と元のカービングを比較</summary>
+      <summary data-i18n="check_summary">🎯 滑走チェック — ステップを入れて滑った動画と元のカービングを比較</summary>
       <div class="card" style="margin-top:10px;">
         <p class="picker-hint" style="margin:0 0 10px;">ステップを当てはめて滑った動画をアップロードすると、最初に解析したカービングとの<b>整合率</b>を計算します。ステップを入れると軌道が元からずれることがあるため、その確認用の追加機能です。</p>
         <input type="file" id="checkInput" accept="video/*" style="display:none;">
-        <button class="btn" id="btnCheckUpload">📹 チェック動画をアップロード</button>
+        <button class="btn" id="btnCheckUpload" data-i18n="check_upload">📹 チェック動画をアップロード</button>
         <div id="checkHolder" style="margin-top:12px;"></div>
         <div id="checkResult" style="display:none;margin-top:12px;"></div>
       </div>
@@ -451,10 +462,10 @@
   <div class="section" id="secSaved" style="display:none;">
     <button class="back-btn" id="backFromSaved">← 戻る</button>
     <div class="step-num">My Lines</div>
-    <h2>マイライン</h2>
+    <h2 data-i18n="myline_title">マイライン</h2>
     <div class="card" id="savedLinesCard">
       <div id="savedLinesList"></div>
-      <p class="provisional" id="savedEmptyHint">まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。</p>
+      <p class="provisional" id="savedEmptyHint" data-i18n="myline_empty">まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。</p>
       <p class="provisional">※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）</p>
     </div>
   </div>
@@ -463,7 +474,7 @@
   <div class="section" id="secHelp" style="display:none;">
     <button class="back-btn" id="backFromHelp">← 戻る</button>
     <div class="step-num">How to Use</div>
-    <h2>使い方</h2>
+    <h2 data-i18n="help_title">使い方</h2>
     <div class="card">
       <h2 style="font-size:14px;">① カービングを検知する</h2>
       <p class="note" style="margin-bottom:0;">正面から撮影したカービング動画をアップロードすると、AIが姿勢を認識してボードの軌道を検出します。<br><b>撮影のコツ</b>：カメラ固定・全身が映る正面構図。<br>カービング開始の直前から始まるように動画を編集し、自身が画面から見切れる前にラインを終えるのがおすすめです。</p>
@@ -488,7 +499,7 @@
         <ellipse cx="15.5" cy="13.5" rx="2.6" ry="3.6"/>
         <path d="M14 18.5h3v2a1.5 1.5 0 0 1-3 0z" fill="currentColor" stroke="none"/>
       </svg>
-      <span>マイステップ</span>
+      <span data-i18n="nav_mysteps">マイステップ</span>
     </button>
     <button class="tab-item" id="navSaved">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
@@ -496,7 +507,7 @@
         <circle cx="12" cy="21" r="1.4" fill="currentColor" stroke="none"/>
         <circle cx="12" cy="3" r="1.4" fill="currentColor" stroke="none"/>
       </svg>
-      <span>マイライン</span>
+      <span data-i18n="nav_myline">マイライン</span>
     </button>
     <button class="tab-item" id="navHelp">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
@@ -504,7 +515,7 @@
         <line x1="4" y1="12" x2="20" y2="12"/>
         <line x1="4" y1="17" x2="20" y2="17"/>
       </svg>
-      <span>使い方</span>
+      <span data-i18n="nav_help">使い方</span>
     </button>
   </nav>
 </div>
@@ -753,6 +764,77 @@ ALL_STEPS = buildAllSteps();
 /* ============================================================
    MY STEPS — できるステップのフィルタ（自動保存）
    ============================================================ */
+/* ============================================================
+   I18N — 多言語対応の土台。
+   今は ja/en の2言語。zh-Hant(繁体字)/ko は後で I18N オブジェクトに
+   キーを追加するだけで有効になる設計（HTML/JS側の変更は不要）。
+   ステップ名・トリック名・カービング専門用語の翻訳は別途、
+   現地のロングボードダンス用語を確認してから追加する（v52時点では未着手）。
+   ============================================================ */
+const I18N = {
+  ja: {
+    nav_mysteps: 'マイステップ', nav_myline: 'マイライン', nav_help: '使い方',
+    step1_title: 'カービングを検知する',
+    upload_cta: '動画を選択', upload_sub: 'mp4 / mov — AIがボード軌道を自動検出',
+    skip_link: '動画なしでラインを設計する',
+    step2_title: 'カービングにステップを当てはめる',
+    replay_summary: '🎥 解析映像を見返す',
+    btn_replay: '▶ ラインを再生', btn_undo: '↩ 戻す',
+    btn_random: '🎲 ステップを全ておまかせ', btn_clear: 'リセット', btn_save: '💾 ラインを保存',
+    diff_label: 'おまかせの難易度', diff_beginner: '初級', diff_inter: '中級', diff_advanced: '上級',
+    stance_label: 'スタンス', stance_regular: 'レギュラー', stance_goofy: 'グーフィー',
+    start_label: '開始サイド',
+    check_summary: '🎯 滑走チェック — ステップを入れて滑った動画と元のカービングを比較',
+    check_upload: '📹 チェック動画をアップロード',
+    mysteps_title: 'できるステップを選ぶ', mysteps_all: '全て選択', mysteps_none: '全て解除',
+    custom_title: 'オリジナルのステップを追加できます', custom_add: '追加',
+    myline_title: 'マイライン', myline_empty: 'まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。',
+    help_title: '使い方',
+  },
+  en: {
+    nav_mysteps: 'My Steps', nav_myline: 'My Lines', nav_help: 'How to Use',
+    step1_title: 'Detect Your Carving',
+    upload_cta: 'Select a Video', upload_sub: 'mp4 / mov — AI auto-detects your board trajectory',
+    skip_link: 'Design a line without a video',
+    step2_title: 'Place Steps on Your Carving',
+    replay_summary: '🎥 Replay analysis video',
+    btn_replay: '▶ Play Line', btn_undo: '↩ Undo',
+    btn_random: '🎲 Randomize All Steps', btn_clear: 'Reset', btn_save: '💾 Save Line',
+    diff_label: 'Auto-fill difficulty', diff_beginner: 'Beginner', diff_inter: 'Intermediate', diff_advanced: 'Advanced',
+    stance_label: 'Stance', stance_regular: 'Regular', stance_goofy: 'Goofy',
+    start_label: 'Starting side',
+    check_summary: '🎯 Ride Check — compare a video of you riding the line to your original carving',
+    check_upload: '📹 Upload check video',
+    mysteps_title: 'Choose the steps you can do', mysteps_all: 'Select all', mysteps_none: 'Clear all',
+    custom_title: 'Add your own custom step', custom_add: 'Add',
+    myline_title: 'My Lines', myline_empty: 'No saved lines yet. Use "💾 Save Line" on the design screen.',
+    help_title: 'How to Use',
+  },
+};
+let currentLang = stGet('stem_lang') || 'ja';
+function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.ja[key] || key; }
+function applyI18n() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, t(key));
+    else el.textContent = t(key);
+  });
+  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('on', b.dataset.lang === currentLang));
+}
+function setLang(lang) {
+  currentLang = lang;
+  stSet('stem_lang', lang);
+  applyI18n();
+  // 動的に生成される画面（ピッカー・マイステップ等）も言語切替で再描画する
+  if (document.getElementById('sec2') && document.getElementById('sec2').style.display !== 'none') { renderDesign(); renderPicker(); }
+  renderMySteps();
+  renderSavedLines();
+}
+document.getElementById('langSwitch').querySelectorAll('button').forEach(b => {
+  b.onclick = () => setLang(b.dataset.lang);
+});
+
 const baseName = n => n.startsWith('スイッチ') ? n.slice(4) : n;
 
 /* ============================================================
@@ -2978,6 +3060,7 @@ function processCheck(track) {
   restoreMainAnalysis();
 }
 
+applyI18n();
 renderSideEditor();
 renderMySteps();
 renderSavedLines();
