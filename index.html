@@ -1384,7 +1384,7 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
         <button class="vbox-close">×</button>
         <div style="font-size:9.5px;font-weight:700;color:${it.finish ? '#3E6A85' : '#2A3138'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">${it.label}</div>
         <div style="position:relative;">
-          <video src="${src}" muted playsinline preload="metadata"
+          <video src="${src}" muted playsinline preload="auto"
             style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;background:#222;${mirror ? 'transform:scaleX(-1);' : ''}"></video>
           <div class="vbox-playmark" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
             <span style="width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;">▶</span>
@@ -1835,8 +1835,10 @@ function playLine() {
 
   // iOS等の自動再生制約対策: この関数はボタンタップの同期チェーン内で呼ばれるため、
   // ここで全サイドボックスの動画に一度 play() を発行して「ユーザー操作由来の再生許可」を取得する。
+  // あわせて読み込みも先行開始させ、自分の番が来た時に即再生できるようにする。
   document.querySelectorAll('#videoOverlay video').forEach(v => {
     v.muted = true;
+    if (v.readyState === 0) v.load();
     const p = v.play();
     if (p && p.then) p.then(() => v.pause()).catch(() => {});
   });
@@ -1912,42 +1914,65 @@ function playLine() {
       if (!hasVideo(box.name) || !v) { animateByTime(st, 2500).then(resolve); return; }
 
       // 再生中は拡大しない（拡大すると俯瞰図と被って軌道が見えなくなるため）。
-      // 小さいボックスの中で動画が再生され、外枠のハイライトで現在位置を示す。
       v.loop = false; v.muted = true;
-      try { v.currentTime = 0; } catch(e) {}
-      const playPromise = v.play();
-      if (playPromise && playPromise.catch) playPromise.catch(() => {});
 
-      const durSec = (isFinite(v.duration) && v.duration > 0.2) ? v.duration : 2.5;
-      const t0 = performance.now();
-      let finished = false;
-      let raf;
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        cancelAnimationFrame(raf);
-        v.removeEventListener('ended', onEnded);
-        path.setAttribute('stroke-dashoffset', totalLen * (1 - st.f1));
-        settleBox(box);
-        finishStepOverlay(st);
-        v.pause(); try { v.currentTime = 0; } catch(e) {}
-        resolve();
-      };
-      const onEnded = () => finish();
-      v.addEventListener('ended', onEnded);
+      /* 動画が「実際に再生できる状態」になるまで待つ。
+         データ未読込のまま play() しても流れず、時間だけが進んで次のステップに飛んでしまうため。 */
+      const waitReady = () => new Promise(r => {
+        const ready = () => v.readyState >= 3 && isFinite(v.duration) && v.duration > 0.05;
+        if (ready()) { r(); return; }
+        let done = false;
+        const fin = () => { if (done) return; done = true; cleanup(); r(); };
+        const cleanup = () => {
+          v.removeEventListener('canplaythrough', fin);
+          v.removeEventListener('canplay', fin);
+          v.removeEventListener('loadeddata', fin);
+          clearTimeout(to);
+        };
+        const to = setTimeout(fin, 5000); // 保険: 5秒で諦めて先へ進む
+        v.addEventListener('canplaythrough', fin);
+        v.addEventListener('canplay', fin);
+        v.addEventListener('loadeddata', fin);
+        if (v.readyState === 0) v.load(); // 未読込なら明示的に読み込み開始
+      });
 
-      const step = (now) => {
-        let p;
-        if (isFinite(v.duration) && v.duration > 0.2 && v.currentTime > 0) {
-          p = Math.min(v.currentTime / v.duration, 1);
-        } else {
-          p = Math.min((now - t0) / (durSec * 1000), 1);
-        }
-        path.setAttribute('stroke-dashoffset', totalLen * (1 - (st.f0 + (st.f1 - st.f0) * p)));
-        if (p >= 1 || (now - t0) >= durSec * 1000 + 250) { finish(); return; }
+      waitReady().then(() => {
+        try { v.currentTime = 0; } catch(e) {}
+        const playPromise = v.play();
+        if (playPromise && playPromise.catch) playPromise.catch(() => {});
+
+        const t0 = performance.now();
+        let finished = false;
+        let raf;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          cancelAnimationFrame(raf);
+          v.removeEventListener('ended', onEnded);
+          path.setAttribute('stroke-dashoffset', totalLen * (1 - st.f1));
+          settleBox(box);
+          finishStepOverlay(st);
+          v.pause(); try { v.currentTime = 0; } catch(e) {}
+          resolve();
+        };
+        // 「動画の再生が終わった瞬間」が次のステップへ進む合図
+        const onEnded = () => finish();
+        v.addEventListener('ended', onEnded);
+
+        const step = (now) => {
+          // 尺は再生開始後に確定することがあるため毎フレーム読み直す
+          // （開始時に1度だけ読むと、尺が未確定=NaNの時に仮の値で早期打ち切りになる）
+          const dur = (isFinite(v.duration) && v.duration > 0.05) ? v.duration : null;
+          const p = (dur && v.currentTime > 0) ? Math.min(v.currentTime / dur, 1)
+                  : (dur ? 0 : Math.min((now - t0) / 2500, 1));
+          path.setAttribute('stroke-dashoffset', totalLen * (1 - (st.f0 + (st.f1 - st.f0) * p)));
+          // 保険: endedが来ない端末向け。実尺+2.5秒の余裕を持たせ、途中で切らない
+          const limit = (dur ? dur * 1000 : 2500) + 2500;
+          if ((now - t0) >= limit) { finish(); return; }
+          raf = requestAnimationFrame(step);
+        };
         raf = requestAnimationFrame(step);
-      };
-      raf = requestAnimationFrame(step);
+      });
     });
   }
 
