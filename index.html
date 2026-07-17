@@ -466,7 +466,7 @@
     <div class="card" id="savedLinesCard">
       <div id="savedLinesList"></div>
       <p class="provisional" id="savedEmptyHint" data-i18n="myline_empty">まだ保存したラインはありません。設計画面の「💾 ラインを保存」で保存できます。</p>
-      <p class="provisional">※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）</p>
+      <p class="provisional" data-i18n="demo_note">※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）</p>
     </div>
   </div>
 
@@ -798,6 +798,10 @@ const I18N = {
     finish_placeholder: 'トリックで締める', selected_tap_remove: '（選択中・タップで外す）',
     side_heel: 'ヒールサイドカーブ', side_toe: 'トゥサイドカーブ', side_straight: '直進',
     meta_carves: 'カービング', meta_steps: 'ステップ',
+    start_label_svg: 'START（手前）',
+    empty_videos_1: 'ステップを選ぶと', empty_videos_2: 'ここに動画が並びます',
+    line_name_date: '{date} のライン',
+    demo_note: '※ デモ機能: この端末のブラウザに保存されます（アプリ版ではアカウントに保存されます）',
     seed_tap: '👆 スケーター（人物）をタップしてください', seed_hint: '最初のフレームで位置を指定すると追跡精度が上がります',
     model_loading: 'AI姿勢認識モデルを準備中...',
     replay_analysis: '🔁 解析映像を再生',
@@ -870,6 +874,10 @@ const I18N = {
     finish_placeholder: 'Finish with a trick', selected_tap_remove: ' (Selected · tap to remove)',
     side_heel: 'Heelside Carve', side_toe: 'Toeside Carve', side_straight: 'Straight',
     meta_carves: 'Carves', meta_steps: 'Steps',
+    start_label_svg: 'START (near side)',
+    empty_videos_1: 'Pick a step and', empty_videos_2: 'its video will show up here',
+    line_name_date: 'Line {date}',
+    demo_note: '※ Demo feature: saved in this browser on this device (the app version will save to your account)',
     seed_tap: '👆 Tap the skater (person)', seed_hint: 'Marking their position in the first frame improves tracking accuracy',
     model_loading: 'Preparing AI pose model...',
     replay_analysis: '🔁 Replay analysis video',
@@ -1391,7 +1399,7 @@ function renderDesign(animate = false) {
 
   svg.innerHTML = `
     <line x1="${PATH_CX}" y1="${MT}" x2="${PATH_CX}" y2="${SVG_H-MB}" stroke="rgba(62,106,133,0.10)" stroke-width="1.5" stroke-dasharray="4 4"/>
-    <text x="${PATH_CX}" y="${SVG_H - MB + 30}" font-size="10" fill="#5E8CA7" text-anchor="middle" font-family="sans-serif" letter-spacing="2">▲ START（手前）</text>
+    <text x="${PATH_CX}" y="${SVG_H - MB + 30}" font-size="10" fill="#5E8CA7" text-anchor="middle" font-family="sans-serif" letter-spacing="2">▲ ${t('start_label_svg')}</text>
     <path id="pathHit" d="${d}" fill="none" stroke="transparent" stroke-width="30"/>
     <path id="linePath" d="${d}" fill="none" stroke="${analyzedPath ? '#E0663C' : '#5E8CA7'}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     <g id="stepOverlays"></g>
@@ -1643,8 +1651,8 @@ function renderVideoBoxes(svg, pointAtFy, bs) {
       <circle cx="${it.anchorX + 10}" cy="${it.anchorY}" r="2.5" fill="${col}"/></g>`;
   });
   if (!items.length) {
-    leaders += `<text x="${BOX_X + BOX_W/2}" y="${SVG_H/2 - 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ステップを選ぶと</text>
-      <text x="${BOX_X + BOX_W/2}" y="${SVG_H/2 + 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">ここに動画が並びます</text>`;
+    leaders += `<text x="${BOX_X + BOX_W/2}" y="${SVG_H/2 - 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">${t('empty_videos_1')}</text>
+      <text x="${BOX_X + BOX_W/2}" y="${SVG_H/2 + 8}" font-size="10" fill="#A7B4BC" text-anchor="middle" font-family="sans-serif">${t('empty_videos_2')}</text>`;
   }
   svg.querySelector('#videoBoxes').innerHTML = leaders;
 
@@ -2335,7 +2343,7 @@ function getSavedLines() { return stGet('stem_saved_lines') || []; }
 document.getElementById('btnSaveLine').onclick = () => {
   const lines = getSavedLines();
   const d = new Date();
-  const name = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} のライン`;
+  const name = t('line_name_date', { date: `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` });
   lines.unshift({
     name,
     stance, startSide, segCount,
