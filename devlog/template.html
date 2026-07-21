@@ -26,27 +26,38 @@
   .kicker { margin-top: 14px; font-size: 30px; color: #8a8178; letter-spacing: 1px; }
 
   /* photo: dominant, slightly tilted like a snapshot */
-  .photo-wrap { margin-top: 70px; display: flex; justify-content: center; }
+  /* photo-wrap grows to fill whatever vertical space is left after the
+     header/thumbs/caption/memo/footer are laid out, so the layout never
+     overflows the fixed 1920px canvas regardless of the source screenshot's
+     aspect ratio (tall phone screenshots get cropped via object-fit, not cut off) */
+  .photo-wrap { margin-top: 70px; display: flex; justify-content: center; flex: 1 1 auto; min-height: 0; }
   .photo {
     background: #fff;
-    padding: 26px 26px 34px;
     border-radius: 10px;
     box-shadow: 0 24px 50px rgba(80,60,40,.14);
     transform: rotate(-1.4deg);
-    max-width: 860px;
   }
-  .photo img { width: 100%; display: block; border-radius: 4px; }
-  .photo .tape {
-    position: absolute; width: 180px; height: 54px;
-    background: rgba(94,140,167,.28);
-    top: 300px; left: 50%; margin-left: -90px;
-    transform: rotate(-2deg);
+  .photo-wrap .photo {
+    padding: 26px 26px 34px;
+    width: 860px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .photo-wrap .photo img {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: block;
+    border-radius: 4px;
+    object-fit: cover;
+    object-position: center top;
   }
 
   .thumbs { display: flex; gap: 22px; margin-top: 46px; justify-content: center; }
-  .thumbs .photo { padding: 16px 16px 20px; max-width: none; }
+  .thumbs .photo { padding: 16px 16px 20px; }
   .thumbs .photo:nth-child(2) { transform: rotate(1.8deg); }
-  .thumbs img { width: 340px; height: 240px; object-fit: cover; }
+  .thumbs img { width: 340px; height: 240px; object-fit: cover; display: block; }
 
   /* caption: like a handwritten note under the photo */
   .caption {
@@ -65,7 +76,7 @@
   }
 
   .foot {
-    margin-top: auto;
+    margin-top: 40px;
     display: flex; align-items: center; gap: 18px;
     font-size: 28px; color: #a89f95;
   }
