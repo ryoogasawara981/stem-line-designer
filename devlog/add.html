@@ -86,8 +86,8 @@
     <label>一言メモ</label>
     <textarea id="memo" placeholder="今日やったこと、感じたことを一言で"></textarea>
 
-    <label>スクリーンショット(複数可)</label>
-    <input type="file" id="files" accept="image/*" multiple>
+    <label>スクリーンショット(1枚)</label>
+    <input type="file" id="files" accept="image/*">
     <div class="thumbs" id="thumbs"></div>
 
     <button id="submit">登録する</button>
@@ -130,19 +130,21 @@ document.getElementById('clearToken').onclick = () => {
   refreshTokenUI();
 };
 
-let resizedImages = []; // [{name, base64}]
+let resizedImages = []; // [{name, base64}] — one screenshot per day
 document.getElementById('files').onchange = async (e) => {
   resizedImages = [];
   const thumbs = document.getElementById('thumbs');
   thumbs.innerHTML = '';
-  const files = Array.from(e.target.files);
-  for (let i = 0; i < files.length; i++) {
-    const dataUrl = await resizeImage(files[i], 1400, 0.85);
-    resizedImages.push({ name: `shot${i + 1}.jpg`, base64: dataUrl.split(',')[1] });
-    const img = document.createElement('img');
-    img.src = dataUrl;
-    thumbs.appendChild(img);
-  }
+  const file = e.target.files[0];
+  if (!file) return;
+  // Downscale only if larger than 1400px (keeps upload under GitHub's size
+  // limit); this is a resize for file size, not a crop — the full image is
+  // kept as-is, nothing is trimmed off.
+  const dataUrl = await resizeImage(file, 1400, 0.9);
+  resizedImages.push({ name: 'shot1.jpg', base64: dataUrl.split(',')[1] });
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  thumbs.appendChild(img);
 };
 
 function resizeImage(file, maxDim, quality) {
