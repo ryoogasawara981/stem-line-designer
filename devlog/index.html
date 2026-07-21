@@ -41,7 +41,7 @@
 </style>
 </head>
 <body>
-  <h1>STEM DEVLOG <span id="day" style="color:#E0663C"></span></h1>
+  <h1>STEM DEVLOG</h1>
   <div class="sub" id="date"></div>
   <a href="add.html" style="display:block; margin-top:14px; padding:12px; text-align:center; border-radius:12px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; font-family:'Noto Sans JP'; font-size:13px; font-weight:700; text-decoration:none;">+ 今日の分を登録する</a>
   <div id="content" hidden>
@@ -68,7 +68,6 @@
   try {
     const r = await fetch('latest.json?t=' + Date.now());
     const d = await r.json();
-    document.getElementById('day').textContent = 'Day ' + d.day_n;
     document.getElementById('date').textContent = d.date;
     document.getElementById('story').src = d.story + '?t=' + Date.now();
     document.getElementById('threads').textContent = d.threads_text;
