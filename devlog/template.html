@@ -19,45 +19,37 @@
     height: 100%;
     display: flex; flex-direction: column;
   }
-  /* top line: like a person's handwritten date note */
+  /* top line: like a person's handwritten date note (no day-count badge) */
   .top { display: flex; align-items: baseline; gap: 22px; }
-  .day { font-family: 'Zen Maru Gothic'; font-weight: 700; font-size: 46px; color: #E0663C; }
-  .date { font-size: 30px; color: #a89f95; letter-spacing: 2px; }
+  .date { font-family: 'Zen Maru Gothic'; font-weight: 700; font-size: 42px; color: #a89f95; letter-spacing: 2px; }
   .kicker { margin-top: 14px; font-size: 30px; color: #8a8178; letter-spacing: 1px; }
 
-  /* photo: dominant, slightly tilted like a snapshot */
-  /* photo-wrap grows to fill whatever vertical space is left after the
-     header/thumbs/caption/memo/footer are laid out, so the layout never
-     overflows the fixed 1920px canvas regardless of the source screenshot's
-     aspect ratio (tall phone screenshots get cropped via object-fit, not cut off) */
+  /* photo: dominant, slightly tilted like a snapshot.
+     photo-wrap grows to fill whatever vertical space is left after the
+     header/caption/memo/footer are laid out, so the layout never overflows
+     the fixed 1920px canvas. The image is never cropped
+     (object-fit: contain) — the uploaded screenshot is shown as-is. */
   .photo-wrap { margin-top: 70px; display: flex; justify-content: center; flex: 1 1 auto; min-height: 0; }
   .photo {
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 24px 50px rgba(80,60,40,.14);
     transform: rotate(-1.4deg);
-  }
-  .photo-wrap .photo {
     padding: 26px 26px 34px;
     width: 860px;
     display: flex;
     flex-direction: column;
     min-height: 0;
   }
-  .photo-wrap .photo img {
+  .photo img {
     width: 100%;
     flex: 1;
     min-height: 0;
     display: block;
     border-radius: 4px;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: contain;
+    object-position: center center;
   }
-
-  .thumbs { display: flex; gap: 22px; margin-top: 46px; justify-content: center; }
-  .thumbs .photo { padding: 16px 16px 20px; }
-  .thumbs .photo:nth-child(2) { transform: rotate(1.8deg); }
-  .thumbs img { width: 340px; height: 240px; object-fit: cover; display: block; }
 
   /* caption: like a handwritten note under the photo */
   .caption {
@@ -87,7 +79,6 @@
 <body>
   <div class="wrap">
     <div class="top">
-      <div class="day">{{DAY_N}}日目</div>
       <div class="date">{{DATE}}</div>
     </div>
     <div class="kicker">アプリ、こつこつ作ってます</div>
@@ -97,8 +88,6 @@
         <img src="{{HERO_SRC}}">
       </div>
     </div>
-
-    <div class="thumbs" id="thumbs"></div>
 
     <div class="caption">{{CAPTION}}</div>
     <div class="memo">{{MEMO}}</div>
@@ -110,14 +99,6 @@
   </div>
 
 <script>
-  const thumbs = {{THUMBS_JSON}};
-  const el = document.getElementById('thumbs');
-  if (!thumbs.length) { el.remove(); }
-  else { thumbs.forEach(src => {
-    const f = document.createElement('div'); f.className = 'photo';
-    const i = document.createElement('img'); i.src = src;
-    f.appendChild(i); el.appendChild(f);
-  }); }
   const cap = document.querySelector('.caption');
   if (cap.textContent.length > 26) cap.style.fontSize = '48px';
 </script>
