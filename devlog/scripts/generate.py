@@ -54,7 +54,7 @@ def fallback_caption(memo: str) -> str:
     return memo[:20] + "…" if len(memo) > 20 else memo
 
 
-def gen_copy(memo: str, day_n: int, cfg: dict):
+def gen_copy(memo: str, cfg: dict):
     """Ask Claude (Haiku) for the story caption + Threads text. Cheap: ~1 call/day."""
     fallback = {
         "story_caption": fallback_caption(memo),
@@ -71,7 +71,7 @@ def gen_copy(memo: str, day_n: int, cfg: dict):
 広告コピーではなく、開発日記・ドキュメンタリーの語り口。等身大で、少し独り言っぽく。
 
 アプリ: {cfg['app_name']} — {cfg['context']}
-今日は{day_n}日目。今日のメモ:
+今日のメモ:
 「{memo}」
 
 書き方のルール:
@@ -134,9 +134,8 @@ def main():
         return
 
     cfg = json.loads((DEVLOG / "config.json").read_text(encoding="utf-8"))
-    day_n = (datetime.strptime(date, "%Y-%m-%d").date() - datetime.strptime(cfg["start_date"], "%Y-%m-%d").date()).days + 1
 
-    copy = gen_copy(memo or "", day_n, cfg)
+    copy = gen_copy(memo or "", cfg)
 
     out_dir = DEVLOG / "out" / date
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -144,10 +143,8 @@ def main():
     template = (DEVLOG / "template.html").read_text(encoding="utf-8")
     date_disp = datetime.strptime(date, "%Y-%m-%d").strftime("%Y.%m.%d")
     html = (
-        template.replace("{{DAY_N}}", str(day_n))
-        .replace("{{DATE}}", date_disp)
+        template.replace("{{DATE}}", date_disp)
         .replace("{{HERO_SRC}}", data_url(images[0]))
-        .replace("{{THUMBS_JSON}}", json.dumps([data_url(p) for p in images[1:3]]))
         .replace("{{CAPTION}}", copy["story_caption"])
         .replace("{{MEMO}}", (memo or "").replace("\n", "<br>"))
     )
@@ -156,13 +153,12 @@ def main():
 
     latest = {
         "date": date,
-        "day_n": day_n,
         "story": f"out/{date}/story.png",
         "threads_text": copy["threads_text"],
-        "screenshots": [f"entries/{date}/{p.name}" for p in images],
+        "screenshots": [f"entries/{date}/{p.name}" for p in images[:1]],
     }
     (DEVLOG / "latest.json").write_text(json.dumps(latest, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[ok] generated devlog for {date} (Day {day_n})")
+    print(f"[ok] generated devlog for {date}")
 
 
 if __name__ == "__main__":
