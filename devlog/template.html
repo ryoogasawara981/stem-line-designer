@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>STEM Devlog Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; }
+  body {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: #faf7f2;
+    color: #2b2622;
+    position: relative;
+  }
+  .wrap {
+    padding: 130px 90px 130px;
+    height: 100%;
+    display: flex; flex-direction: column;
+  }
+  /* top line: like a person's handwritten date note */
+  .top { display: flex; align-items: baseline; gap: 22px; }
+  .day { font-family: 'Zen Maru Gothic'; font-weight: 700; font-size: 46px; color: #E0663C; }
+  .date { font-size: 30px; color: #a89f95; letter-spacing: 2px; }
+  .kicker { margin-top: 14px; font-size: 30px; color: #8a8178; letter-spacing: 1px; }
+
+  /* photo: dominant, slightly tilted like a snapshot */
+  .photo-wrap { margin-top: 70px; display: flex; justify-content: center; }
+  .photo {
+    background: #fff;
+    padding: 26px 26px 34px;
+    border-radius: 10px;
+    box-shadow: 0 24px 50px rgba(80,60,40,.14);
+    transform: rotate(-1.4deg);
+    max-width: 860px;
+  }
+  .photo img { width: 100%; display: block; border-radius: 4px; }
+  .photo .tape {
+    position: absolute; width: 180px; height: 54px;
+    background: rgba(94,140,167,.28);
+    top: 300px; left: 50%; margin-left: -90px;
+    transform: rotate(-2deg);
+  }
+
+  .thumbs { display: flex; gap: 22px; margin-top: 46px; justify-content: center; }
+  .thumbs .photo { padding: 16px 16px 20px; max-width: none; }
+  .thumbs .photo:nth-child(2) { transform: rotate(1.8deg); }
+  .thumbs img { width: 340px; height: 240px; object-fit: cover; }
+
+  /* caption: like a handwritten note under the photo */
+  .caption {
+    margin-top: 84px;
+    font-family: 'Zen Maru Gothic';
+    font-weight: 700;
+    font-size: 60px;
+    line-height: 1.5;
+    color: #2b2622;
+  }
+  .memo {
+    margin-top: 30px;
+    font-size: 40px; line-height: 1.7;
+    color: #6b625a;
+    font-weight: 400;
+  }
+
+  .foot {
+    margin-top: auto;
+    display: flex; align-items: center; gap: 18px;
+    font-size: 28px; color: #a89f95;
+  }
+  .foot .dot { width: 14px; height: 14px; border-radius: 50%; background: #5E8CA7; }
+  .foot b { color: #5E8CA7; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="day">{{DAY_N}}日目</div>
+      <div class="date">{{DATE}}</div>
+    </div>
+    <div class="kicker">アプリ、こつこつ作ってます</div>
+
+    <div class="photo-wrap">
+      <div class="photo">
+        <img src="{{HERO_SRC}}">
+      </div>
+    </div>
+
+    <div class="thumbs" id="thumbs"></div>
+
+    <div class="caption">{{CAPTION}}</div>
+    <div class="memo">{{MEMO}}</div>
+
+    <div class="foot">
+      <span class="dot"></span>
+      <span>STEM ・ ロングボードダンスの<b>ライン設計アプリ</b></span>
+    </div>
+  </div>
+
+<script>
+  const thumbs = {{THUMBS_JSON}};
+  const el = document.getElementById('thumbs');
+  if (!thumbs.length) { el.remove(); }
+  else { thumbs.forEach(src => {
+    const f = document.createElement('div'); f.className = 'photo';
+    const i = document.createElement('img'); i.src = src;
+    f.appendChild(i); el.appendChild(f);
+  }); }
+  const cap = document.querySelector('.caption');
+  if (cap.textContent.length > 26) cap.style.fontSize = '48px';
+</script>
+</body>
+</html>
