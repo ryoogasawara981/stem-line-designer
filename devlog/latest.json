@@ -2,8 +2,9 @@
   "date": "2026-07-21",
   "day_n": 1,
   "story": "out/2026-07-21/story.png",
-  "threads_text": "滑走チェック機能に相関グラフを追加した。自分のラインと実際の滑りのズレが、思ったより大きくて驚いた。数字で見えると次に直す場所がはっきりする。\n\nローンチまでもう少し、こつこつやってます。\n#ロングボードダンス #longboarddancing #アプリ開発",
+  "threads_text": "撮影した動画を格納したのと、UIを整えるためのツールをclaudeで作成した。テキストベースで指示するのではなく、調整ツールを作ってしまって細かいところは手作業することにした。\n\nローンチまでもう少し、こつこつやってます。\n#ロングボードダンス #longboarddancing #アプリ開発",
   "screenshots": [
-    "entries/2026-07-21/screenshot1.png"
+    "entries/2026-07-21/screenshot1.png",
+    "entries/2026-07-21/shot1.jpg"
   ]
 }
