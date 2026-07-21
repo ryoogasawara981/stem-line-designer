@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STEM Devlog — 今日の分を登録</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:'Inter','Noto Sans JP',sans-serif;
+    background:#10181e; color:#fff; min-height:100vh;
+    padding:24px 20px 60px;
+    background-image:radial-gradient(600px 400px at -10% -10%, rgba(94,140,167,.35), transparent),
+                     radial-gradient(500px 400px at 110% 110%, rgba(224,102,60,.22), transparent);
+  }
+  h1 { font-size:20px; font-weight:900; letter-spacing:1px; }
+  .sub { color:rgba(255,255,255,.5); font-size:13px; margin-top:4px; font-family:'Noto Sans JP'; }
+  .card {
+    margin-top:20px; background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.15); border-radius:20px;
+    padding:18px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  }
+  .card h2 { font-size:13px; font-weight:900; letter-spacing:2px; color:#E0663C; margin-bottom:12px; }
+  label { display:block; font-family:'Noto Sans JP'; font-size:13px; color:rgba(255,255,255,.65); margin:14px 0 6px; }
+  label:first-of-type { margin-top:0; }
+  input[type=date], input[type=password], textarea {
+    width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2);
+    border-radius:10px; padding:11px 12px; color:#fff; font-family:'Noto Sans JP'; font-size:15px;
+  }
+  textarea { min-height:90px; resize:vertical; line-height:1.6; }
+  input[type=file] { font-family:'Noto Sans JP'; font-size:13px; color:rgba(255,255,255,.7); margin-top:2px; width:100%; }
+  .thumbs { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .thumbs img { width:72px; height:72px; object-fit:cover; border-radius:8px; }
+  button {
+    margin-top:16px; width:100%; padding:14px; border:none; border-radius:12px;
+    background:#E0663C; color:#fff; font-weight:900; font-size:15px;
+    font-family:'Noto Sans JP'; cursor:pointer;
+  }
+  button.secondary { background:rgba(255,255,255,.1); margin-top:10px; }
+  button:disabled { opacity:.5; }
+  .status { margin-top:12px; font-family:'Noto Sans JP'; font-size:13px; line-height:1.6; white-space:pre-wrap; }
+  .status.ok { color:#8fd4a8; }
+  .status.err { color:#f0a3a3; }
+  details { margin-top:18px; font-family:'Noto Sans JP'; font-size:12px; color:rgba(255,255,255,.55); }
+  details summary { cursor:pointer; color:#5E8CA7; font-weight:700; }
+  details ol { margin:10px 0 0 18px; line-height:1.9; }
+  details code { background:rgba(255,255,255,.1); padding:1px 6px; border-radius:4px; }
+  .token-badge { display:flex; align-items:center; justify-content:space-between; font-family:'Noto Sans JP'; font-size:13px; color:rgba(255,255,255,.6); }
+  .token-badge button { width:auto; margin:0; padding:6px 12px; font-size:12px; background:rgba(255,255,255,.1); }
+  a.link { color:#5E8CA7; }
+</style>
+</head>
+<body>
+  <h1>STEM DEVLOG</h1>
+  <div class="sub">今日の分を登録</div>
+
+  <div class="card" id="tokenCard">
+    <h2>アクセストークン</h2>
+    <div id="tokenSetup">
+      <input type="password" id="tokenInput" placeholder="GitHubトークンを貼り付け">
+      <button id="saveToken">保存する</button>
+      <details>
+        <summary>トークンの作り方(初回だけ)</summary>
+        <ol>
+          <li><a class="link" href="https://github.com/settings/personal-access-tokens/new" target="_blank">こちら</a>を開く(GitHubにログイン済みで)</li>
+          <li>Repository access →「Only select repositories」→ <code>stem-line-designer</code> を選択</li>
+          <li>Permissions →「Repository permissions」→ <code>Contents</code> を <b>Read and write</b> に、<code>Actions</code> を <b>Read and write</b> に設定</li>
+          <li>「Generate token」を押して表示された文字列をコピー</li>
+          <li>上の欄に貼り付けて「保存する」。この端末のブラウザに保存され、以後入力不要</li>
+        </ol>
+      </details>
+    </div>
+    <div class="token-badge" id="tokenBadge" hidden>
+      <span>トークン保存済み ✓</span>
+      <button id="clearToken">削除</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>今日の記録</h2>
+    <label>日付</label>
+    <input type="date" id="date">
+
+    <label>一言メモ</label>
+    <textarea id="memo" placeholder="今日やったこと、感じたことを一言で"></textarea>
+
+    <label>スクリーンショット(複数可)</label>
+    <input type="file" id="files" accept="image/*" multiple>
+    <div class="thumbs" id="thumbs"></div>
+
+    <button id="submit">登録する</button>
+    <button id="dispatch" class="secondary">登録してすぐ生成する</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>朝の投稿ページ</h2>
+    <a class="link" href="index.html" style="font-family:'Noto Sans JP'; font-size:14px;">→ index.html を開く</a>
+  </div>
+
+<script>
+const OWNER = 'ryoogasawara981';
+const REPO = 'stem-line-designer';
+const BRANCH = 'main';
+const API = 'https://api.github.com';
+
+const dateInput = document.getElementById('date');
+const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+dateInput.value = jstToday;
+
+const tokenSetup = document.getElementById('tokenSetup');
+const tokenBadge = document.getElementById('tokenBadge');
+function refreshTokenUI() {
+  const t = localStorage.getItem('stem_devlog_token');
+  tokenSetup.hidden = !!t;
+  tokenBadge.hidden = !t;
+}
+refreshTokenUI();
+document.getElementById('saveToken').onclick = () => {
+  const v = document.getElementById('tokenInput').value.trim();
+  if (!v) return;
+  localStorage.setItem('stem_devlog_token', v);
+  document.getElementById('tokenInput').value = '';
+  refreshTokenUI();
+};
+document.getElementById('clearToken').onclick = () => {
+  localStorage.removeItem('stem_devlog_token');
+  refreshTokenUI();
+};
+
+let resizedImages = []; // [{name, base64}]
+document.getElementById('files').onchange = async (e) => {
+  resizedImages = [];
+  const thumbs = document.getElementById('thumbs');
+  thumbs.innerHTML = '';
+  const files = Array.from(e.target.files);
+  for (let i = 0; i < files.length; i++) {
+    const dataUrl = await resizeImage(files[i], 1400, 0.85);
+    resizedImages.push({ name: `shot${i + 1}.jpg`, base64: dataUrl.split(',')[1] });
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    thumbs.appendChild(img);
+  }
+};
+
+function resizeImage(file, maxDim, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => { img.src = e.target.result; };
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function b64EncodeUnicode(str) {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode('0x' + p1)));
+}
+
+async function ghGetSha(path, token) {
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`, {
+    headers: { Authorization: `token ${token}` }
+  });
+  if (res.status === 200) { const j = await res.json(); return j.sha; }
+  return null;
+}
+
+async function ghPutFile(path, base64Content, token, message) {
+  const sha = await ghGetSha(path, token);
+  const body = { message, content: base64Content, branch: BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(`${path}: ${res.status} ${j.message || ''}`);
+  }
+}
+
+async function submitEntry() {
+  const token = localStorage.getItem('stem_devlog_token');
+  const statusEl = document.getElementById('status');
+  statusEl.className = 'status';
+  if (!token) { statusEl.textContent = 'トークンを先に保存してください'; statusEl.className = 'status err'; return null; }
+  const date = dateInput.value;
+  if (!date) { statusEl.textContent = '日付を選んでください'; statusEl.className = 'status err'; return null; }
+  const memo = document.getElementById('memo').value.trim();
+  if (!memo && resizedImages.length === 0) {
+    statusEl.textContent = 'メモかスクショ、どちらか入れてください';
+    statusEl.className = 'status err';
+    return null;
+  }
+  statusEl.textContent = 'アップロード中…';
+  try {
+    if (memo) {
+      await ghPutFile(`devlog/entries/${date}/memo.txt`, b64EncodeUnicode(memo), token, `devlog: memo ${date}`);
+    }
+    for (const img of resizedImages) {
+      await ghPutFile(`devlog/entries/${date}/${img.name}`, img.base64, token, `devlog: screenshot ${date}`);
+    }
+    statusEl.textContent = `登録できた(${date})`;
+    statusEl.className = 'status ok';
+    return date;
+  } catch (e) {
+    statusEl.textContent = '失敗: ' + e.message;
+    statusEl.className = 'status err';
+    return null;
+  }
+}
+
+document.getElementById('submit').onclick = submitEntry;
+
+document.getElementById('dispatch').onclick = async () => {
+  const date = await submitEntry();
+  if (!date) return;
+  const token = localStorage.getItem('stem_devlog_token');
+  const statusEl = document.getElementById('status');
+  statusEl.textContent += '\n生成をリクエスト中…';
+  try {
+    const res = await fetch(`${API}/repos/${OWNER}/${REPO}/actions/workflows/devlog.yml/dispatches`, {
+      method: 'POST',
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: BRANCH, inputs: { date } })
+    });
+    if (res.status === 204) {
+      statusEl.textContent += '\n生成開始。1分ほどしてから index.html を確認してください';
+      statusEl.className = 'status ok';
+    } else {
+      const j = await res.json().catch(() => ({}));
+      statusEl.textContent += `\n生成リクエスト失敗: ${res.status} ${j.message || ''}`;
+      statusEl.className = 'status err';
+    }
+  } catch (e) {
+    statusEl.textContent += '\n生成リクエスト失敗: ' + e.message;
+    statusEl.className = 'status err';
+  }
+};
+</script>
+</body>
+</html>
