@@ -41,10 +41,23 @@ def load_entry(date: str):
     return memo, images
 
 
+def fallback_caption(memo: str) -> str:
+    """Short caption for the story image when no API key is set.
+    Prefers a natural clause break (。then、) over a hard character cut,
+    so it never chops off mid-word."""
+    if not memo:
+        return "今日もちょっと進んだ"
+    for sep in ("。", "、"):
+        head = memo.split(sep)[0].strip()
+        if head and len(head) <= 22:
+            return head
+    return memo[:20] + "…" if len(memo) > 20 else memo
+
+
 def gen_copy(memo: str, day_n: int, cfg: dict):
     """Ask Claude (Haiku) for the story caption + Threads text. Cheap: ~1 call/day."""
     fallback = {
-        "story_caption": memo.split("。")[0][:24] if memo else "今日もちょっと進んだ",
+        "story_caption": fallback_caption(memo),
         "threads_text": f"{memo}\n\nローンチまでもう少し、こつこつやってます。\n{cfg.get('hashtags','')}",
     }
     api_key = os.environ.get("ANTHROPIC_API_KEY")
