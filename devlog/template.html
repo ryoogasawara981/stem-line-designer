@@ -15,28 +15,40 @@
     position: relative;
   }
   .wrap {
-    padding: 130px 90px 130px;
+    padding: 110px 90px 90px;
     height: 100%;
     display: flex; flex-direction: column;
   }
   /* top line: like a person's handwritten date note (no day-count badge) */
   .top { display: flex; align-items: baseline; gap: 22px; }
-  .date { font-family: 'Zen Maru Gothic'; font-weight: 700; font-size: 42px; color: #a89f95; letter-spacing: 2px; }
-  .kicker { margin-top: 14px; font-size: 30px; color: #8a8178; letter-spacing: 1px; }
+  .date { font-family: 'Zen Maru Gothic'; font-weight: 700; font-size: 40px; color: #a89f95; letter-spacing: 2px; }
+  .kicker { margin-top: 12px; font-size: 30px; color: #8a8178; letter-spacing: 1px; }
+
+  /* title: entered separately from the memo, so it never just repeats it.
+     Placed above the photo so it reads like a headline. */
+  .caption {
+    margin-top: 44px;
+    font-family: 'Zen Maru Gothic';
+    font-weight: 700;
+    font-size: 66px;
+    line-height: 1.45;
+    color: #2b2622;
+  }
 
   /* photo: dominant, slightly tilted like a snapshot.
      photo-wrap grows to fill whatever vertical space is left after the
-     header/caption/memo/footer are laid out, so the layout never overflows
-     the fixed 1920px canvas. The image is never cropped
-     (object-fit: contain) — the uploaded screenshot is shown as-is. */
-  .photo-wrap { margin-top: 70px; display: flex; justify-content: center; flex: 1 1 auto; min-height: 0; }
+     header/title/memo are laid out (no footer anymore), so the layout
+     never overflows the fixed 1920px canvas and the photo gets as much
+     room as possible. The image is never cropped (object-fit: contain)
+     — the uploaded screenshot is shown as-is, portrait phone shots included. */
+  .photo-wrap { margin-top: 54px; display: flex; justify-content: center; flex: 1 1 auto; min-height: 0; }
   .photo {
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 24px 50px rgba(80,60,40,.14);
     transform: rotate(-1.4deg);
-    padding: 26px 26px 34px;
-    width: 860px;
+    padding: 24px 24px 30px;
+    width: 900px;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -51,29 +63,13 @@
     object-position: center center;
   }
 
-  /* caption: like a handwritten note under the photo */
-  .caption {
-    margin-top: 84px;
-    font-family: 'Zen Maru Gothic';
-    font-weight: 700;
-    font-size: 60px;
-    line-height: 1.5;
-    color: #2b2622;
-  }
+  /* memo: body text, entered separately from the title */
   .memo {
-    margin-top: 30px;
+    margin-top: 46px;
     font-size: 40px; line-height: 1.7;
     color: #6b625a;
     font-weight: 400;
   }
-
-  .foot {
-    margin-top: 40px;
-    display: flex; align-items: center; gap: 18px;
-    font-size: 28px; color: #a89f95;
-  }
-  .foot .dot { width: 14px; height: 14px; border-radius: 50%; background: #5E8CA7; }
-  .foot b { color: #5E8CA7; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -81,7 +77,9 @@
     <div class="top">
       <div class="date">{{DATE}}</div>
     </div>
-    <div class="kicker">アプリ、こつこつ作ってます</div>
+    <div class="kicker">ラインビルドアプリSTEMをこつこつ作ってます</div>
+
+    <div class="caption">{{CAPTION}}</div>
 
     <div class="photo-wrap">
       <div class="photo">
@@ -89,18 +87,17 @@
       </div>
     </div>
 
-    <div class="caption">{{CAPTION}}</div>
     <div class="memo">{{MEMO}}</div>
-
-    <div class="foot">
-      <span class="dot"></span>
-      <span>STEM ・ ロングボードダンスの<b>ライン設計アプリ</b></span>
-    </div>
   </div>
 
 <script>
   const cap = document.querySelector('.caption');
-  if (cap.textContent.length > 26) cap.style.fontSize = '48px';
+  const len = cap.textContent.length;
+  if (len > 34) cap.style.fontSize = '42px';
+  else if (len > 22) cap.style.fontSize = '52px';
+
+  const memoEl = document.querySelector('.memo');
+  if (!memoEl.textContent.trim()) memoEl.style.display = 'none';
 </script>
 </body>
 </html>
