@@ -25,7 +25,7 @@
   .card h2 { font-size:13px; font-weight:900; letter-spacing:2px; color:#E0663C; margin-bottom:12px; }
   label { display:block; font-family:'Noto Sans JP'; font-size:13px; color:rgba(255,255,255,.65); margin:14px 0 6px; }
   label:first-of-type { margin-top:0; }
-  input[type=date], input[type=password], textarea {
+  input[type=date], input[type=password], input[type=text], textarea {
     width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2);
     border-radius:10px; padding:11px 12px; color:#fff; font-family:'Noto Sans JP'; font-size:15px;
   }
@@ -83,8 +83,11 @@
     <label>日付</label>
     <input type="date" id="date">
 
-    <label>一言メモ</label>
-    <textarea id="memo" placeholder="今日やったこと、感じたことを一言で"></textarea>
+    <label>タイトル(見出し)</label>
+    <input type="text" id="title" placeholder="例: ズレが見えるようにした">
+
+    <label>本文(任意)</label>
+    <textarea id="memo" placeholder="今日やったこと、感じたことを詳しく"></textarea>
 
     <label>スクリーンショット(1枚)</label>
     <input type="file" id="files" accept="image/*">
@@ -202,14 +205,18 @@ async function submitEntry() {
   if (!token) { statusEl.textContent = 'トークンを先に保存してください'; statusEl.className = 'status err'; return null; }
   const date = dateInput.value;
   if (!date) { statusEl.textContent = '日付を選んでください'; statusEl.className = 'status err'; return null; }
+  const title = document.getElementById('title').value.trim();
   const memo = document.getElementById('memo').value.trim();
-  if (!memo && resizedImages.length === 0) {
-    statusEl.textContent = 'メモかスクショ、どちらか入れてください';
+  if (!title && !memo && resizedImages.length === 0) {
+    statusEl.textContent = 'タイトル・本文・スクショのいずれか入れてください';
     statusEl.className = 'status err';
     return null;
   }
   statusEl.textContent = 'アップロード中…';
   try {
+    if (title) {
+      await ghPutFile(`devlog/entries/${date}/title.txt`, b64EncodeUnicode(title), token, `devlog: title ${date}`);
+    }
     if (memo) {
       await ghPutFile(`devlog/entries/${date}/memo.txt`, b64EncodeUnicode(memo), token, `devlog: memo ${date}`);
     }
